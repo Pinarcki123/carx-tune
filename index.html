@@ -9,77 +9,117 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CarX Tunes">
 <style>
-:root{--bg:#f2f2f7;--cd:#ffffff;--tx:#1c1c1e;--mu:#8e8e93;--bd:rgba(60,60,67,.18);--ac:#0a84ff;--good:#34c759;--bad:#ff453a;--sh:0 1px 2px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);--r:14px;color-scheme:light}
-[data-theme=dark]{--bg:#000000;--cd:#1c1c1e;--tx:#f5f5f7;--mu:#98989d;--bd:rgba(84,84,88,.65);--sh:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}
+:root{--bg:#f2f2f7;--cd:#fff;--tx:#1c1c1e;--mu:#8e8e93;--bd:rgba(60,60,67,.16);--a:#0a84ff;--b:#ff9f0a;--sh:0 1px 2px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.06);--r:16px;color-scheme:light}
+[data-theme=dark]{--bg:#000;--cd:#1c1c1e;--tx:#f5f5f7;--mu:#98989d;--bd:rgba(84,84,88,.6);--a:#64d2ff;--b:#ffb340;--sh:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:calc(env(safe-area-inset-bottom) + 64px);transition:background .25s,color .25s}
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:color-mix(in srgb,var(--cd) 78%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--bd)}
-header h1{font-size:17px;font-weight:600;margin:0;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.saved{font-size:12px;color:var(--mu);min-width:56px;text-align:right;transition:opacity .3s}
-button,select,input,textarea{font:inherit;color:var(--tx);background:var(--cd);border:.5px solid var(--bd);border-radius:10px;padding:9px 12px;min-height:44px;-webkit-appearance:none;appearance:none;transition:transform .12s,background .2s}
+body{margin:0;font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:calc(env(safe-area-inset-bottom) + 96px);transition:background .25s,color .25s}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--bd)}
+header h1{font-size:17px;font-weight:600;margin:0;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s}
+header h1.show,header h1.always{opacity:1}
+.saved{font-size:12px;color:var(--mu);min-width:64px;text-align:right}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--cd);border:.5px solid var(--bd);border-radius:12px;padding:10px 12px;min-height:44px;-webkit-appearance:none;appearance:none;transition:transform .12s,background .2s}
 button{cursor:pointer;font-weight:500}button:active{transform:scale(.97)}
-button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
-button.ghost{border-color:transparent;background:transparent;color:var(--ac);padding-left:4px;padding-right:4px}
-button.danger{color:var(--bad)}
-.wrap{max-width:1180px;margin:0 auto;padding:14px}
-.card{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:14px;margin-bottom:14px;animation:fade .35s ease both}
+button.p{background:var(--a);border-color:var(--a);color:#fff;font-weight:600}
+button.ghost{border-color:transparent;background:transparent;color:var(--a);padding-left:4px;padding-right:4px}
+button.danger{color:#ff453a}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 16px}
+.large{font-size:34px;font-weight:700;margin:8px 2px 14px;letter-spacing:-.02em}
+.card{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:16px;margin-bottom:16px;animation:fade .35s ease both}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.seg{display:flex;background:color-mix(in srgb,var(--bd) 60%,transparent);border-radius:10px;padding:2px;gap:2px;margin:10px 0}
-.seg button{flex:1;border:0;background:transparent;min-height:34px;padding:6px 8px;font-size:14px;box-shadow:none}
+.mu{color:var(--mu)}small{color:var(--mu)}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.qs{background:var(--cd);border-radius:var(--r);padding:12px;box-shadow:var(--sh)}
+.qs b{display:block;font-size:20px;margin-top:2px}.qs small{font-size:12px}
+.hrow{display:flex;gap:10px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.hrow::-webkit-scrollbar{display:none}
+.hrow .mini{flex:0 0 150px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;min-height:34px;padding:6px 12px;border-radius:999px;font-size:14px;background:var(--cd);border:.5px solid var(--bd)}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:1000px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.tile{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform .15s}
+.tile:active{transform:scale(.98)}
+.tile .top{display:flex;justify-content:space-between;align-items:center}
+.tile .car{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .nm{font-size:14px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .meta{font-size:13px;color:var(--mu)}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--a) 15%,transparent);color:var(--a)}
+.ring{width:38px;height:38px;flex:0 0 auto}
+.ring text{font-size:9px;font-weight:700;fill:var(--tx)}
+#ptr{height:0;overflow:hidden;text-align:center;color:var(--mu);font-size:13px;transition:height .2s}
+.seg{display:flex;background:color-mix(in srgb,var(--bd) 70%,transparent);border-radius:12px;padding:3px;gap:3px;margin:12px 0}
+.seg button{flex:1;border:0;background:transparent;min-height:36px;padding:6px 8px;font-size:14px;box-shadow:none}
 .seg button.on{background:var(--cd);box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.summary{display:flex;gap:8px;flex-wrap:wrap}
-.stat{flex:1 1 90px;background:color-mix(in srgb,var(--bd) 35%,transparent);border-radius:10px;padding:8px 10px}
-.stat b{display:block;font-size:18px}.stat small{color:var(--mu);font-size:12px}
-details{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:12px;overflow:hidden}
-summary{list-style:none;padding:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+@media(min-width:700px){.summary{grid-template-columns:repeat(4,1fr)}}
+.stat{background:color-mix(in srgb,var(--bd) 35%,transparent);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:18px}.stat small{font-size:12px}
+label.lbl{display:block;font-size:13px;color:var(--mu);margin:12px 0 6px}
+.field{width:100%}
+details{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}
+summary{list-style:none;padding:16px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 summary::-webkit-details-marker{display:none}
 summary::after{content:"›";color:var(--mu);font-size:22px;transform:rotate(90deg);transition:transform .2s}
 details[open] summary::after{transform:rotate(270deg)}
-.badge{font-size:12px;font-weight:500;color:var(--mu);margin-left:auto;margin-right:10px}
-.sec{display:grid;grid-template-columns:1fr;gap:12px;padding:0 14px 14px}
+.sec{display:grid;grid-template-columns:1fr;gap:16px;padding:0 16px 18px}
 @media(min-width:900px){.sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.sec .cg{position:sticky;top:76px}}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 0;border-top:.5px solid var(--bd);border-left:4px solid transparent;padding-left:10px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 0 12px 10px;border-top:.5px solid var(--bd);border-left:4px solid transparent}
 .row:first-child{border-top:0}
-.row label{flex:1 1 140px;font-size:15px}
-.in{display:flex;align-items:center;gap:6px;flex:1 1 180px}
-.in input,.in select{flex:1;min-width:0;width:100%;text-align:right}
+.row label{flex:1 1 140px;font-size:15px;line-height:1.3}
+.in{display:flex;align-items:center;gap:6px;flex:1 1 220px;justify-content:flex-end}
+.in input,.in select{flex:0 0 auto;width:118px;min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
+.in .fr-l{font-size:12px;color:var(--mu);margin-left:4px}
 .in span{font-size:12px;color:var(--mu);min-width:12px;text-align:center}
-.unit{font-size:12px;color:var(--mu);margin-left:4px}
-small,.mu{color:var(--mu)}
-h3{margin:14px 0 4px;font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
-.acts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.cg{display:flex;flex-direction:column;gap:10px;align-content:start}
-.ch{position:relative;height:220px}.ch.tall{height:280px}
-.cc{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:12px}
-.field{width:100%}
-label.lbl{display:block;font-size:13px;color:var(--mu);margin:8px 0 4px}
+.unit{font-size:12px;color:var(--mu);margin-left:4px;white-space:nowrap}
+h3{margin:18px 0 6px;font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
+.cg{display:flex;flex-direction:column;gap:12px;align-content:start}
+.cc{background:var(--cd);border:.5px solid var(--bd);border-radius:14px;padding:12px;position:relative}
+.cc h4{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--mu)}
+.cv{opacity:0;transition:opacity .3s}.cv.ready{opacity:1}
+.shim{position:absolute;inset:12px;border-radius:10px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--bd) 80%,transparent),transparent);background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{from{background-position:200% 0}to{background-position:-200% 0}}
+.cc.small .wrapc{height:120px}.cc.big .wrapc{height:240px}.cc.tall .wrapc{height:300px}
+.wrapc{position:relative}
 .tabbar{display:none}
-@media(max-width:899px){.tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:25;background:color-mix(in srgb,var(--cd) 85%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:.5px solid var(--bd);padding:6px 4px calc(6px + env(safe-area-inset-bottom));overflow-x:auto;gap:4px}
-.tabbar button{flex:0 0 auto;min-width:68px;border:0;background:transparent;font-size:12px;color:var(--mu);padding:6px 8px;min-height:44px;box-shadow:none}
-.tabbar button.on{color:var(--ac);font-weight:600}}
+@media(max-width:899px){
+ .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:30;background:color-mix(in srgb,var(--cd) 82%,transparent);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.18),0 0 0 .5px var(--bd);padding:6px;gap:2px;max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:none}
+ .tabbar::-webkit-scrollbar{display:none}
+ .tabbar button{flex:0 0 auto;min-width:58px;border:0;background:transparent;color:var(--mu);font-size:11px;padding:6px 6px;min-height:50px;box-shadow:none;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:18px}
+ .tabbar button i{font-style:normal;font-size:18px;line-height:1}
+ .tabbar button.on{color:var(--a);background:color-mix(in srgb,var(--a) 14%,transparent);font-weight:600}
+}
 #md{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;animation:fadeBg .2s}
 @keyframes fadeBg{from{opacity:0}}
-#md .sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--cd);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));animation:up .28s ease}
-@media(min-width:900px){#md{align-items:center}#md .sheet{border-radius:20px}}
+#md .sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--cd);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .28s ease}
+@media(min-width:900px){#md{align-items:center}#md .sheet{border-radius:22px}}
 @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.hist{border-top:.5px solid var(--bd);padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
 textarea{width:100%;min-height:90px;font:12px ui-monospace,monospace}
-#toast{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:20px;opacity:0;transition:.25s;pointer-events:none;z-index:50;font-size:14px;white-space:nowrap}
+#toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:22px;opacity:0;transition:.25s;pointer-events:none;z-index:50;font-size:14px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 #toast.on{opacity:1;transform:translateX(-50%)}
-.tc{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.tunehead{display:flex;flex-wrap:wrap;gap:6px}
+#toast button{pointer-events:auto}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
 <nav class="tabbar" id="tabs"></nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
+// ================= CONSTANTS =================
 const T=['Stock','Street','Sport','Racing','Elite','Ultimate'];
 const TC=['transparent','#8e8e93','#34c759','#ff453a','#ffd60a','#bf5af2'];
 const STG=['Stock','Stage 1','Stage 2','Stage 3','Stage 4'];
-const C={a:'#0a84ff',b:'#ff9f0a',front:'#0a84ff',rear:'#ff375f',good:'#34c759',bad:'#ff453a',gold:'#ffd60a'};
+const CLASSES=['C1','C2','C3','C4','C5','C6','CS','CS+'];
+const CCOL={'C1':'#0a84ff','C2':'#30b0c7','C3':'#34c759','C4':'#ffd60a','C5':'#ff9f0a','C6':'#ff6b35','CS':'#ff375f','CS+':'#ff453a'};
+const TAGS=['drift','drag','grip','circuit'];
+const SNAP_GAP=10*60*1000, SNAP_MAX=20;
+// Fixed, broad reference ranges for the radar (edit here). weight: inv=true means lighter scores higher.
+// Acceleration is a CarX game value; the 0-100 range is a placeholder until you confirm it.
+const RANGES={wt:{min:800,max:2200,inv:true},hp:{min:100,max:1200},top:{min:150,max:450},acc:{min:0,max:100}};
 
-// ---- field definitions ----
+// ================= FIELDS =================
 const N=(k,l,u,x={})=>({k,l,u,t:'n',...x});
 const FR=(k,l,u,x={})=>({k,l,u,t:'fr',...x});
 const S=(k,l,o,x={})=>({k,l,o,t:'s',...x});
@@ -104,11 +144,10 @@ const SEC=[
  FR('d1','Damper slow bump','game value',{show:dmp}),FR('d2','Damper fast bump','game value',{show:dmp}),FR('d3','Damper slow rebound','game value',{show:dmp}),FR('d4','Damper fast rebound','game value',{show:dmp})],
  p:['Front arms','Rear arms','Front anti-roll bar','Rear anti-roll bar','Brake system','Front springs','Rear springs','Front dampers','Rear dampers']},
 {id:'whl',t:'Wheels',f:[N('wu','Durability','game value'),FR('ww','Width','mm'),FR('wp','Profile','mm'),SFR('po','Profile option',['None','Racing','Stretch']),SFR('pf','Profile offset',['-10','-5','0','+5','+10'],{show:pro}),FR('rd','Rim diameter','in'),FR('wg','Grip','%'),FR('wo','Wheel offset','cm',{neg:1}),FR('tpr','Tire pressure','bar'),S('tt','Tire type',['Street','Street+','Sport','Sport+','Racing','Racing+'])],
- p:['Tires','Spacers front','Spacers rear']}
+ p:['Spacers front','Spacers rear']}
 ];
 const partF=p=>typeof p==='string'?{k:'p:'+p,l:p,t:'s',o:T}:{k:'p:'+p[0],l:p[0],t:'s',o:p[1]};
-
-const REG={};
+const REG={cls:{t:'s',o:CLASSES}};
 SEC.forEach(s=>{
  s.f.forEach(f=>{
   if(f.t==='n')REG[f.k]={t:'n'};
@@ -121,16 +160,21 @@ SEC.forEach(s=>{
  (s.p||[]).forEach(p=>{const f=partF(p);REG[f.k]={t:'s',o:f.o}});
 });
 
+// ================= HELPERS =================
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
+const num=v=>typeof v==='number'&&isFinite(v);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+// Power-to-weight in hp per tonne
+const pwOf=d=>(num(d.hp)&&num(d.wt)&&d.wt>0)?d.hp/(d.wt/1000):null;
+const topKmh=d=>num(d.top)?(d.su==='mph'?d.top*1.609344:d.top):null;
+const clsOf=t=>CLASSES.includes(t.cls)?t.cls:'C1';
 
-// ---- inputs ----
-// Negative-capable fields use inputmode=text with a pattern so phones show a keypad with "-"
+// ================= INPUTS =================
 const numIn=(k,v,neg)=>neg
  ?`<input type=text inputmode=decimal pattern="-?[0-9]*[.]?[0-9]*" data-k="${k}" data-neg=1 value="${E(v??'')}" placeholder="—">`
  :`<input type=number step=any inputmode=decimal min=0 data-k="${k}" value="${E(v??'')}" placeholder="—">`;
 const selIn=(k,o,v)=>`<select data-k="${k}">${o.map(x=>`<option${x===(v??o[0])?' selected':''}>${E(x)}</option>`).join('')}</select>`;
-
 function fld(f,d){
  if(f.show&&!f.show(d))return'';
  const u=f.u?`<span class=unit>${E(f.u)}</span>`:'';
@@ -142,40 +186,44 @@ function fld(f,d){
   if(!c)return'';
   c+=u;
  }
- else if(f.t==='s')c=selIn(f.k,f.o,d[f.k]);
+ else if(f.t==='s')c=selIn(f.k,f.o,d[f.k])+u;
  else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
- else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}">`;
+ else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}" style="width:100%;text-align:left">`;
  else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${numIn('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
  return`<div class=row><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
 }
-function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';const col=f.o===T?TC[Math.max(0,T.indexOf(v))]:'transparent';
+function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';const col=TC[Math.max(0,T.indexOf(v))];
  return`<div class=row style="border-left-color:${col}"><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
 
-// ---- counts for section badges ----
+// ================= COMPLETION =================
 function filled(s,d){
  let n=0,t=0;
  s.f.forEach(f=>{if(f.show&&!f.show(d))return;
-  if(f.t==='n'){t++;if(d[f.k]!=null)n++}
-  else if(f.t==='fr'){t+=2;if(d[f.k+'F']!=null)n++;if(d[f.k+'R']!=null)n++}
+  if(f.t==='n'){t++;if(num(d[f.k]))n++}
+  else if(f.t==='fr'){t+=2;if(num(d[f.k+'F']))n++;if(num(d[f.k+'R']))n++}
   else if(f.t==='x'){t++;if(d[f.k])n++}
   else if(f.t==='s'){t++;if(d[f.k]!=null)n++}
-  else if(f.t==='g'){const k=Math.min(10,d.ng|0);t+=k;for(let i=1;i<=k;i++)if(d['g'+i]!=null)n++}
+  else if(f.t==='sfr'){t+=2;if(d[f.k+'F'])n++;if(d[f.k+'R'])n++}
+  else if(f.t==='g'){const k=Math.min(10,d.ng|0);t+=k;for(let i=1;i<=k;i++)if(num(d['g'+i]))n++}
  });
  (s.p||[]).forEach(p=>{t++;if(d[partF(p).k])n++});
  return{n,t};
 }
+function completion(d){let n=0,t=0;SEC.forEach(s=>{const b=filled(s,d);n+=b.n;t+=b.t});return t?n/t:0}
+function ringSvg(pct){const c=2*Math.PI*16;return`<svg class=ring viewBox="0 0 38 38"><circle cx=19 cy=19 r=16 fill=none stroke="color-mix(in srgb,var(--bd) 90%,transparent)" stroke-width=4></circle><circle cx=19 cy=19 r=16 fill=none stroke="var(--a)" stroke-width=4 stroke-linecap=round stroke-dasharray="${(pct*c).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 19 19)"></circle><text x=19 y=22 text-anchor=middle>${Math.round(pct*100)}%</text></svg>`}
 
-// ---- import validation ----
+// ================= IMPORT / EXPORT =================
 function clean(t){
  if(!t||typeof t!=='object'||!t.d||typeof t.d!=='object'||Array.isArray(t.d))return null;
  const d={};
  for(const k of Object.keys(t.d)){
   const r=REG[k],v=t.d[k];if(!r)continue;
-  if(r.t==='n'&&typeof v==='number'&&isFinite(v))d[k]=v;
+  if(r.t==='n'&&num(v))d[k]=v;
   else if(r.t==='s'&&r.o.includes(v))d[k]=v;
   else if(r.t==='x'&&typeof v==='string')d[k]=v.slice(0,60);
  }
- return{id:uid(),name:String(t.name||'Imported tune').slice(0,80),car:String(t.car||'').slice(0,80),d};
+ const tags=Array.isArray(t.tags)?t.tags.filter(x=>TAGS.includes(x)):[];
+ return{id:uid(),name:String(t.name||'Imported tune').slice(0,80),car:String(t.car||'').slice(0,80),cls:CLASSES.includes(t.cls)?t.cls:'C1',tags,d,up:Date.now(),hist:[]};
 }
 const enc=o=>btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const dec=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0))))};
@@ -185,10 +233,9 @@ function parse(s){
  const a=Array.isArray(o)?o:o&&Array.isArray(o.tunes)?o.tunes:[o];
  return a.map(clean).filter(Boolean);
 }
-const strip=t=>({v:1,name:t.name,car:t.car,d:t.d});
+const strip=t=>({v:2,name:t.name,car:t.car,cls:clsOf(t),tags:t.tags||[],d:t.d});
 
-// ---- numbers for charts/compare ----
-const num=v=>typeof v==='number'&&isFinite(v);
+// ================= COMPARE DATA =================
 function flat(t){
  const m=new Map();
  SEC.forEach(s=>s.f.forEach(f=>{
@@ -198,9 +245,9 @@ function flat(t){
   else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
   else if(f.t==='g')for(let i=1;i<=10;i++)if(num(t.d['g'+i]))m.set('Gear '+i,{u:'ratio',v:t.d['g'+i]});
  }));
+ const pw=pwOf(t.d);if(pw!=null)m.set('Overview · Power-to-weight',{u:'hp/t',v:pw});
  return m;
 }
-// Grouped comparison: for each metric present in either tune, both values (null if missing)
 function compareRows(a,b){
  const fa=flat(a),fb=flat(b),keys=new Set([...fa.keys(),...fb.keys()]),rows=[];
  keys.forEach(k=>{const x=fa.get(k),y=fb.get(k);const va=x&&num(x.v)?x.v:null,vb=y&&num(y.v)?y.v:null;
@@ -208,150 +255,266 @@ function compareRows(a,b){
  return rows;
 }
 
-// ---- state ----
+// ================= STATE =================
 const $=id=>document.getElementById(id),app=$('app'),tabs=$('tabs');
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}}};
-let DB;try{DB=JSON.parse(ls.get('cxt'))||{tunes:[]}}catch(e){DB={tunes:[]}}
-if(!DB||!Array.isArray(DB.tunes))DB={tunes:[]};
-let cur=null,view='list',charts=[],open=new Set(['stats']),q='',cA='',cB='',mode='stats',cmpBusy=false,undo=null;
+function loadDB(){let x;try{x=JSON.parse(ls.get('cxt'))}catch(e){x=null}
+ if(!x||!Array.isArray(x.tunes))x={tunes:[]};
+ x.tunes=x.tunes.map(t=>({hist:[],up:0,tags:[],cls:'C1',...t}));
+ x.recent=Array.isArray(x.recent)?x.recent:[];return x}
+let DB=loadDB();
+let cur=null,view='list',charts=[],open=new Set(['stats']),q='',cA='',cB='',mode='inputs',undo=null;
+let filt={sort:'recent',drive:'',cls:'',tag:''};
 let th=ls.get('cxth')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
 function applyTheme(){document.documentElement.dataset.theme=th;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th==='dark'?'#000000':'#f2f2f7'}
-let saveT;
-function save(){if(!ls.set('cxt',JSON.stringify(DB))){toast('Could not save: storage blocked or full');return false}
- const s=$('saved');if(s){s.textContent='Saved';clearTimeout(save.h);save.h=setTimeout(()=>{const x=$('saved');if(x)x.textContent=''},1200)}return true}
-function toast(m,action){const t=$('toast');t.innerHTML=E(m)+(action?` <button class=ghost data-a=${action.a} style="min-height:auto;padding:0 0 0 8px">${action.l}</button>`:'');t.className='on';clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',action?5000:2200)}
-const bar=(l,t,r='')=>`<header>${l}<h1 id=ttl>${E(t)}</h1><span id=saved class=saved></span>${r}<button class=ghost data-a=theme title="Toggle dark/light">${th==='dark'?'Light':'Dark'}</button></header>`;
-function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class=sheet>${h}<div class=acts><button data-a=close>Done</button></div></div>`}
 const find=id=>DB.tunes.find(t=>t.id===id);
 
-function tuneLine(t){return [t.d.hp?t.d.hp+' hp':'',t.d.wt?t.d.wt+' kg':'',t.d.dr||''].filter(Boolean).join(' · ')}
-const lst=()=>{
- const ql=q.toLowerCase();
- const r=DB.tunes.filter(t=>{if(!ql)return true;const parts=[t.name,t.car,...Object.keys(t.d).filter(k=>k.startsWith('p:')).map(k=>t.d[k]),t.d.en||'',t.d.tn||''];return parts.join(' ').toLowerCase().includes(ql)||Object.keys(t.d).some(k=>k.startsWith('p:')&&k.slice(2).toLowerCase().includes(ql)&&t.d[k]!=='Stock')});
- return r.length?r.map(t=>`<div class=card><div><b>${E(t.name)}</b><br><small>${E(t.car)}${tuneLine(t)?' · '+E(tuneLine(t)):''}</small></div><div class=acts><button class=p data-a=open data-id=${t.id}>Open</button><button data-a=share data-id=${t.id}>Share</button><button data-a=dup data-id=${t.id}>Duplicate</button><button class=danger data-a=del data-id=${t.id}>Delete</button></div></div>`).join(''):'<p class=mu>No tunes yet. Tap "New tune" or "Import".</p>'};
+// ================= SAVE / STATUS =================
+let savedT;
+function setStatus(txt){const s=$('saved');if(s)s.textContent=txt}
+function save(){
+ setStatus('Saving…');
+ const raw=JSON.stringify(DB);
+ if(raw.length>4.5e6){toast('Storage nearly full. Clear old snapshots?',{a:'prune',l:'Clear'})}
+ const ok=ls.set('cxt',raw);
+ if(!ok){setStatus('');toast('Could not save: storage blocked or full');return false}
+ clearTimeout(savedT);
+ savedT=setTimeout(()=>{setStatus('Saved');savedT=setTimeout(()=>setStatus(''),1800)},250);
+ return true;
+}
+// Snapshot the tune BEFORE a change. Gated so at most one snapshot per 10 minutes of editing.
+function snapshot(t,force){
+ if(!t)return;const last=(t.hist||[])[0];
+ if(!force&&last&&Date.now()-last.t<SNAP_GAP)return;
+ const snap={t:Date.now(),name:t.name,car:t.car,cls:clsOf(t),tags:[...(t.tags||[])],d:JSON.parse(JSON.stringify(t.d))};
+ t.hist=[snap,...(t.hist||[])].slice(0,SNAP_MAX);
+}
+function touchRecent(id){DB.recent=[id,...DB.recent.filter(x=>x!==id)].slice(0,3)}
 
+function toast(m,action){const t=$('toast');t.innerHTML=E(m)+(action?` <button class=ghost data-a=${action.a} style="min-height:auto;padding:0 0 0 8px;pointer-events:auto">${action.l}</button>`:'');t.className='on';clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',action?5000:2200)}
+function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class=sheet>${h}<div class=acts><button data-a=close style="flex:1">Done</button></div></div>`}
+
+// ================= HEADER =================
+const hdr=(left,title,right='',always=false)=>`<header>${left}<h1 id=ttl class="${always?'always':''}">${E(title)}</h1><span id=saved class=saved></span>${right}<button class=ghost data-a=theme>${th==='dark'?'Light':'Dark'}</button></header>`;
+
+// ================= DASHBOARD =================
+function tuneMatches(t){
+ if(q){const ql=q.toLowerCase();const hay=[t.name,t.car,t.cls,...t.tags,...Object.keys(t.d).filter(k=>k.startsWith('p:')&&t.d[k]!=='Stock').map(k=>t.d[k]),t.d.en||'',t.d.tn||''].join(' ').toLowerCase();if(!hay.includes(ql))return false}
+ if(filt.drive&&t.d.dr!==filt.drive)return false;
+ if(filt.cls&&clsOf(t)!==filt.cls)return false;
+ if(filt.tag&&!(t.tags||[]).includes(filt.tag))return false;
+ return true;
+}
+function sortTunes(arr){
+ const a=[...arr];
+ if(filt.sort==='pw')a.sort((x,y)=>(pwOf(y.d)??-1)-(pwOf(x.d)??-1));
+ else if(filt.sort==='class')a.sort((x,y)=>CLASSES.indexOf(clsOf(x))-CLASSES.indexOf(clsOf(y)));
+ else a.sort((x,y)=>(y.up||0)-(x.up||0));
+ return a;
+}
+function tileHtml(t){
+ const cls=clsOf(t),pw=pwOf(t.d),pct=completion(t.d);
+ return`<div class=tile data-a=open data-id=${t.id}>
+  <div class=top><span class=badge style="background:${CCOL[cls]}">${cls}</span>${ringSvg(pct)}</div>
+  <div class=car>${E(t.car||'No car set')}</div>
+  <div class=nm>${E(t.name)}</div>
+  <div class=meta>${pw!=null?pw.toFixed(0)+' hp/t':'— hp/t'} · ${E(t.d.dr||'—')} · ${E(t.d.en||'No engine')}</div>
+  ${(t.tags||[]).length?`<div class=tags>${t.tags.map(x=>`<span class=tag>${x}</span>`).join('')}</div>`:''}
+ </div>`}
 function renderList(){
  view='list';destroyCharts();tabs.innerHTML='';
- app.innerHTML=bar('','CarX Tune Database')+`<div class=wrap><div class=acts><button class=p data-a=new>New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div><input id=q type=search placeholder="Search tunes or parts" value="${E(q)}" style="width:100%;margin-bottom:12px"><div id=lst>${lst()}</div></div>`;
+ const all=DB.tunes;
+ const bestPw=all.reduce((m,t)=>{const p=pwOf(t.d);return p!=null&&(m==null||p>m.v)?{v:p,t}:m},null);
+ const fast=all.reduce((m,t)=>{const k=topKmh(t.d);return k!=null&&(m==null||k>m.v)?{v:k,t}:m},null);
+ const recent=DB.recent.map(find).filter(Boolean);
+ const list=sortTunes(all.filter(tuneMatches));
+ const chip=(grp,val,label)=>`<button class="chip ${filt[grp]===val?'on':''}" data-a=filter data-g=${grp} data-v="${E(val)}">${E(label)}</button>`;
+ app.innerHTML=hdr('','Garage','',false)+`<div class=wrap id=dash>
+  <div id=ptr>Pull to refresh…</div>
+  <h2 class=large>Garage</h2>
+  <div class=stats3>
+   <div class=qs><small>Tunes</small><b>${all.length}</b></div>
+   <div class=qs><small>Best hp/t</small><b>${bestPw?bestPw.v.toFixed(0):'—'}</b><small>${bestPw?E(bestPw.t.car||bestPw.t.name):''}</small></div>
+   <div class=qs><small>Top speed</small><b>${fast?Math.round(fast.v):'—'}</b><small>${fast?E(fast.t.car||fast.t.name):''}</small></div>
+  </div>
+  ${recent.length?`<h3>Recent</h3><div class=hrow>${recent.map(t=>`<div class="tile mini" data-a=open data-id=${t.id} style="padding:12px"><span class=badge style="background:${CCOL[clsOf(t)]}">${clsOf(t)}</span><div class=car style="margin-top:6px">${E(t.car||'No car')}</div><div class=nm>${E(t.name)}</div></div>`).join('')}</div>`:''}
+  <div class=acts><button class=p data-a=new>New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div>
+  <input id=q type=search placeholder="Search tunes or parts" value="${E(q)}" class=field style="margin-bottom:10px">
+  <h3>Sort</h3><div class=chips>${chip('sort','recent','Recent')}${chip('sort','pw','Power-to-weight')}${chip('sort','class','Class')}</div>
+  <h3>Drive</h3><div class=chips>${chip('drive','','All')}${['AWD','RWD','FWD'].map(v=>chip('drive',v,v)).join('')}</div>
+  <h3>Class</h3><div class=chips>${chip('cls','','All')}${CLASSES.map(c=>chip('cls',c,c)).join('')}</div>
+  <h3>Tag</h3><div class=chips>${chip('tag','','All')}${TAGS.map(x=>chip('tag',x,x)).join('')}</div>
+  <div id=lst class=grid style="margin-top:6px">${list.length?list.map(tileHtml).join(''):`<p class=mu style="grid-column:1/-1">${all.length?'No tunes match these filters.':'No tunes yet. Tap "New tune" to start your first setup.'}</p>`}</div>
+ </div>`;
+ bindListScroll();
 }
-function summaryHtml(d){
- const s=[['Power',d.hp?d.hp+' hp':'—'],['Weight',d.wt?d.wt+' kg':'—'],['Drive',d.dr||'—'],['Engine',d.en||'—']];
- return `<div class=summary id=sum>${s.map(x=>`<div class=stat><small>${x[0]}</small><b>${E(x[1])}</b></div>`).join('')}</div>`;
+function bindListScroll(){
+ const h=document.querySelector('header'),t=$('ttl');
+ const onScroll=()=>{if(view!=='list'||!t)return;t.classList.toggle('show',scrollY>70)};
+ window.onscroll=onScroll;onScroll();
 }
+// Pull to refresh: only from the top of the dashboard
+let pY=null,pDy=0;
+document.addEventListener('touchstart',e=>{if(view==='list'&&scrollY===0)pY=e.touches[0].clientY;else pY=null},{passive:true});
+document.addEventListener('touchmove',e=>{if(pY==null)return;pDy=e.touches[0].clientY-pY;const p=$('ptr');if(p&&pDy>0){p.style.height=Math.min(pDy*.5,60)+'px';p.textContent=pDy>90?'Release to refresh':'Pull to refresh…'}},{passive:true});
+document.addEventListener('touchend',()=>{if(pY==null)return;const p=$('ptr');if(p){p.style.height='0'}
+ if(pDy>90){DB=loadDB();renderList();toast('Refreshed')}pY=null;pDy=0});
+
+// ================= EDITOR =================
+function summaryHtml(t){
+ const d=t.d,pw=pwOf(d),tp=d.hp!=null?d.hp:'—';
+ return `<div class=summary id=sumbox>
+  <div class=stat><small>Power</small><b>${num(d.hp)?d.hp+' hp':'—'}</b></div>
+  <div class=stat><small>Weight</small><b>${num(d.wt)?d.wt+' kg':'—'}</b></div>
+  <div class=stat><small>Power-to-weight</small><b>${pw!=null?pw.toFixed(0)+' hp/t':'—'}</b></div>
+  <div class=stat><small>Drive</small><b>${E(d.dr||'—')}</b></div>
+ </div>`}
 function renderEdit(){
  view='edit';destroyCharts();
- let h=bar('<button class=ghost data-a=back>‹ Tunes</button>',cur.name||'Tune');
- h+=`<div class=wrap><div class=card><label class=lbl>Tune name</label><input class=field data-r=name value="${E(cur.name)}"><label class=lbl>Car</label><input class=field data-r=car value="${E(cur.car)}"><div id=sumbox>${summaryHtml(cur.d)}</div><div class=seg id=seg><button data-a=mode data-m=stats class="${mode==='stats'?'on':''}">Inputs</button><button data-a=mode data-m=charts class="${mode==='charts'?'on':''}">Charts</button></div><div class=acts><button data-a=share data-id=${cur.id}>Share</button></div></div>`;
+ const cls=clsOf(cur);
+ let h=hdr('<button class=ghost data-a=back>‹ Garage</button>',cur.name||'Tune','',true);
+ h+=`<div class=wrap>
+  <div class=card>
+   <label class=lbl>Tune name</label><input class=field data-r=name value="${E(cur.name)}">
+   <label class=lbl>Car</label><input class=field data-r=car value="${E(cur.car)}">
+   <label class=lbl>Class</label><select class=field data-r=cls>${CLASSES.map(c=>`<option${c===cls?' selected':''}>${c}</option>`).join('')}</select>
+   <label class=lbl>Tags</label><div class=chips style="padding:0">${TAGS.map(x=>`<button class="chip ${(cur.tags||[]).includes(x)?'on':''}" data-a=tag data-tag=${x}>${x}</button>`).join('')}</div>
+   <div id=sumbox>${summaryHtml(cur)}</div>
+   <div class=seg id=seg><button data-a=mode data-m=inputs class="${mode==='inputs'?'on':''}">Inputs</button><button data-a=mode data-m=charts class="${mode==='charts'?'on':''}">Charts</button></div>
+   <div class=acts><button data-a=share data-id=${cur.id}>Share</button><button data-a=history>History (${(cur.hist||[]).length})</button></div>
+  </div>`;
  SEC.forEach(s=>{const b=filled(s,cur.d);
   h+=`<details data-s=${s.id} id=sec-${s.id}${open.has(s.id)?' open':''}><summary>${s.t}<span class=badge>${b.n}/${b.t}</span></summary><div class=sec><div class=inputs>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h3>Parts</h3>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}</div><div class=cg id=c-${s.id}></div></div></details>`;
  });
  app.innerHTML=h+'</div>';
- tabs.innerHTML=SEC.map(s=>`<button data-a=jump data-s=${s.id}>${s.t.replace('Car overall stats','Stats').replace('Suspension','Susp.')}</button>`).join('');
+ tabs.innerHTML=SEC.map(s=>`<button data-a=jump data-s=${s.id}><i>${{stats:'🏎',eng:'⚙️',drive:'🔩',body:'🧩',susp:'🛞',whl:'⭕'}[s.id]}</i>${{stats:'Stats',eng:'Engine',drive:'Drive',body:'Body',susp:'Susp',whl:'Wheels'}[s.id]}</button>`).join('');
  applyMode();drawCharts();
 }
 function applyMode(){
+ const wide=window.innerWidth>=900;
  document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));
- document.querySelectorAll('.inputs').forEach(i=>i.style.display=mode==='stats'?'':'none');
- document.querySelectorAll('.cg').forEach(c=>c.style.display=mode==='charts'?'':'');
- document.querySelectorAll('.cg').forEach(c=>c.style.display=(mode==='charts'||window.innerWidth>=900)?'':'none');
- document.querySelectorAll('.inputs').forEach(i=>i.style.display=(mode==='stats'||window.innerWidth>=900)?'':'none');
+ document.querySelectorAll('.inputs').forEach(i=>i.style.display=(mode==='inputs'||wide)?'':'none');
+ document.querySelectorAll('.cg').forEach(c=>c.style.display=(mode==='charts'||wide)?'':'none');
 }
 function renderCmp(){
  view='cmp';destroyCharts();tabs.innerHTML='';
  const o=DB.tunes.map(t=>`<option value=${t.id}>${E(t.name)}</option>`).join('');
- app.innerHTML=bar('<button class=ghost data-a=back>‹ Tunes</button>','Compare')+`<div class=wrap>${DB.tunes.length<2?'<p class=mu>You need at least two tunes to compare.</p>':`<div class="card"><div class=acts><select data-c=a aria-label="Tune A">${o}</select><select data-c=b aria-label="Tune B">${o}</select></div><div class=mu style="font-size:13px"><span style="color:${C.a}">■</span> Tune A &nbsp; <span style="color:${C.b}">■</span> Tune B</div></div><div id=cb></div>`}</div>`;
+ app.innerHTML=hdr('<button class=ghost data-a=back>‹ Garage</button>','Compare','',true)+`<div class=wrap>${DB.tunes.length<2?'<p class=mu>You need at least two tunes to compare.</p>':`<div class=card><div class=acts><select data-c=a aria-label="Tune A" style="flex:1">${o}</select><select data-c=b aria-label="Tune B" style="flex:1">${o}</select></div><div class=mu style="font-size:13px"><span style="color:var(--a)">■</span> Tune A &nbsp; <span style="color:var(--b)">■</span> Tune B</div></div><div id=cb class=cg></div>`}</div>`;
  if(DB.tunes.length>1){
   if(!find(cA))cA=DB.tunes[0].id;if(!find(cB)||cB===cA)cB=DB.tunes.find(t=>t.id!==cA).id;
   document.querySelector('[data-c=a]').value=cA;document.querySelector('[data-c=b]').value=cB;drawCharts();
  }
 }
 
-// ---- charts ----
+// ================= CHARTS =================
 function destroyCharts(){charts.forEach(c=>c.destroy());charts=[]}
-function box(parent,cls){const w=document.createElement('div');w.className='cc '+(cls||'');const cv=document.createElement('canvas');w.append(cv);parent.append(w);return cv}
-function opts(title){const cs=getComputedStyle(document.documentElement);const tx=cs.getPropertyValue('--tx').trim(),bd=cs.getPropertyValue('--bd').trim();
- Chart.defaults.color=tx;Chart.defaults.borderColor=bd;Chart.defaults.font.family='-apple-system,system-ui,sans-serif';
- return{responsive:true,maintainAspectRatio:false,animation:{duration:window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:400},plugins:{title:{display:true,text:title,color:tx,font:{size:13,weight:'600'}},legend:{labels:{color:tx,boxWidth:10}}}}}
-
-function chartTorque(parent,d){
- const pts=[['Low',d.tl],['Medium',d.tm],['High',d.th]];if(!pts.some(p=>num(p[1])))return;
- const vals=pts.map(p=>num(p[1])?p[1]:null);const mx=Math.max(...vals.filter(num));const pk=vals.indexOf(mx);
- const cv=box(parent,'');cv.parentElement.style.height='220px';
- charts.push(new Chart(cv,{type:'line',data:{labels:pts.map(p=>p[0]),datasets:[{label:'Torque (Nm)',data:vals,borderColor:C.a,backgroundColor:C.a+'22',fill:true,tension:.35,spanGaps:false,pointRadius:vals.map((_,i)=>i===pk?8:4),pointBackgroundColor:vals.map((_,i)=>i===pk?C.gold:C.a)}]},
-  options:{...opts('Torque curve (peak in gold)'),scales:{y:{title:{display:true,text:'Nm'}}}}}));
+function palette(){const cs=getComputedStyle(document.documentElement);return{a:cs.getPropertyValue('--a').trim(),b:cs.getPropertyValue('--b').trim(),tx:cs.getPropertyValue('--tx').trim(),bd:cs.getPropertyValue('--bd').trim()}}
+function baseOpts(title,p){
+ Chart.defaults.color=p.tx;Chart.defaults.borderColor=p.bd;Chart.defaults.font.family='-apple-system,system-ui,sans-serif';
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ return{responsive:true,maintainAspectRatio:false,animation:{duration:reduce?0:400},plugins:{title:{display:!!title,text:title,color:p.tx,font:{size:12,weight:'600'}},legend:{display:false}}}}
+// Card holding one chart: shimmer while it draws, then fade in
+function card(parent,title,size){
+ const w=document.createElement('div');w.className=`cc ${size||'small'}`;
+ if(title)w.innerHTML=`<h4>${E(title)}</h4>`;
+ const wr=document.createElement('div');wr.className='wrapc';
+ const sh=document.createElement('div');sh.className='shim';
+ const cv=document.createElement('canvas');cv.className='cv';
+ wr.append(sh,cv);w.append(wr);parent.append(w);return cv;
 }
-function chartGears(parent,d){
+// One chart per item: front/rear pairs show two bars, single values one bar
+function chartItem(parent,label,unit,vals,p){
+ const valid=vals.map(v=>num(v)?v:null);if(valid.every(v=>v==null))return;
+ const pair=vals.length===2;
+ const cv=card(parent,label+(unit?` (${unit})`:''),'small');
+ charts.push(new Chart(cv,{type:'bar',data:{labels:pair?['Front','Rear']:[label],datasets:[{data:valid,backgroundColor:pair?[p.a,p.b]:[p.a],borderRadius:6,maxBarThickness:48}]},
+  options:{...baseOpts('',p),scales:{y:{grid:{color:ctx=>ctx.tick.value===0?p.tx:undefined},title:{display:false}}}}}));
+}
+function chartTorque(parent,d,p){
+ const pts=[['Low',d.tl],['Medium',d.tm],['High',d.th]];if(!pts.some(x=>num(x[1])))return;
+ const vals=pts.map(x=>num(x[1])?x[1]:null);const mx=Math.max(...vals.filter(num));const pk=vals.indexOf(mx);
+ const cv=card(parent,'Torque curve (peak in gold)','big');
+ charts.push(new Chart(cv,{type:'line',data:{labels:pts.map(x=>x[0]),datasets:[{label:'Nm',data:vals,borderColor:p.a,backgroundColor:p.a+'22',fill:true,tension:.35,pointRadius:vals.map((_,i)=>i===pk?8:4),pointBackgroundColor:vals.map((_,i)=>i===pk?'#ffd60a':p.a)}]},
+  options:{...baseOpts('',p),scales:{y:{title:{display:true,text:'Nm'}}}}}));
+}
+function chartGears(parent,d,p){
  const n=Math.min(10,Math.max(0,d.ng|0));const v=Array.from({length:n},(_,i)=>d['g'+(i+1)]);if(!v.some(num))return;
  const labels=v.map((_,i)=>'G'+(i+1));
  const gaps=v.slice(1).map((x,i)=>num(x)&&num(v[i])?v[i]-x:null);
  const valid=gaps.filter(num).map(Math.abs);const avg=valid.length?valid.reduce((a,b)=>a+b,0)/valid.length:0;
- const cv=box(parent,'');cv.parentElement.style.height='220px';
- const pc=v.map((_,i)=>i===0?C.a:(num(gaps[i-1])&&Math.abs(gaps[i-1])>avg*1.5?C.bad:C.a));
- charts.push(new Chart(cv,{type:'line',data:{labels,datasets:[{label:'Ratio',data:v,borderColor:C.a,tension:0,spanGaps:true,pointRadius:6,pointBackgroundColor:pc}]},
-  options:{...opts('Gear ratios (red = wide gap)'),scales:{y:{title:{display:true,text:'Ratio'}}}}}));
+ const pc=v.map((_,i)=>i===0?p.a:(num(gaps[i-1])&&Math.abs(gaps[i-1])>avg*1.5?'#ff453a':p.a));
+ const cv=card(parent,'Gear ratios (red = wide gap to next gear)','big');
+ charts.push(new Chart(cv,{type:'line',data:{labels,datasets:[{label:'Ratio',data:v,borderColor:p.a,tension:0,spanGaps:true,pointRadius:6,pointBackgroundColor:pc}]},
+  options:{...baseOpts('',p),scales:{y:{title:{display:true,text:'Ratio'}}}}}));
 }
-function chartPair(parent,title,rows){
- const valid=rows.filter(r=>num(r.f)||num(r.r));if(!valid.length)return;
- const cv=box(parent,'');cv.parentElement.style.height=Math.max(180,valid.length*40+90)+'px';
- charts.push(new Chart(cv,{type:'bar',data:{labels:valid.map(r=>r.l),datasets:[
-  {label:'Front',data:valid.map(r=>num(r.f)?r.f:null),backgroundColor:C.front,borderRadius:4},
-  {label:'Rear',data:valid.map(r=>num(r.r)?r.r:null),backgroundColor:C.rear,borderRadius:4}]},
-  options:{...opts(title),indexAxis:'y',scales:{x:{grid:{color:ctx=>ctx.tick.value===0?'#888':undefined},title:{display:true,text:'value (0 = centre)'}}}}}));
+// Radar: fixed ranges from RANGES, so the shape means the same thing for every tune
+function radarScore(key,val){
+ const r=RANGES[key];if(!num(val))return null;
+ let s=clamp((val-r.min)/(r.max-r.min),0,1)*100;
+ return r.inv?100-s:s;
 }
-// Radar only in Car overall stats: weight, power, top speed, acceleration
-function chartRadar(parent,d){
- const axes=[['Weight',d.wt],['Power',d.hp],['Top speed',d.top],['Acceleration',d.acc]];
- if(!axes.some(a=>num(a[1])))return;
- const vals=axes.map(a=>num(a[1])?a[1]:0);const mx=Math.max(...vals.map(Math.abs),1);
- const cv=box(parent,'');cv.parentElement.style.height='280px';
- charts.push(new Chart(cv,{type:'radar',data:{labels:axes.map(a=>a[0]),datasets:[{label:'This tune (relative to its own max)',data:vals.map(v=>Math.round(Math.abs(v)/mx*100)),borderColor:C.a,backgroundColor:C.a+'33',pointBackgroundColor:C.a}]},
-  options:{...opts('Car profile'),scales:{r:{beginAtZero:true,max:100,ticks:{display:false},grid:{color:'#8883'},angleLines:{color:'#8883'}}}}}));
+function chartRadar(parent,d,p){
+ const axes=[['Weight (light = high)',radarScore('wt',d.wt)],['Power',radarScore('hp',d.hp)],['Top speed',radarScore('top',topKmh(d))],['Acceleration',radarScore('acc',d.acc)]];
+ if(axes.every(a=>a[1]==null))return;
+ const cv=card(parent,'Car profile (fixed scale, 0–100)','big');
+ charts.push(new Chart(cv,{type:'radar',data:{labels:axes.map(a=>a[0]),datasets:[{label:'This tune',data:axes.map(a=>a[1]==null?null:Math.round(a[1])),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true}]},
+  options:{...baseOpts('',p),plugins:{...baseOpts('',p).plugins,legend:{display:true,labels:{color:p.tx}}},scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
 }
-// Comparison: grouped bars, Tune A vs Tune B per metric, missing values left empty
-function chartCompare(parent,a,b){
- const rows=compareRows(a,b);
- if(!rows.length){parent.innerHTML='<div class=card><p class=mu>Nothing to compare yet. Fill in values for either tune.</p></div>';return}
- const groups={};rows.forEach(r=>{(groups[r.unit]=groups[r.unit]||[]).push(r)});
- for(const u in groups){
-  const g=groups[u];const cv=box(parent,'');cv.parentElement.style.height=Math.max(200,g.length*44+100)+'px';
-  charts.push(new Chart(cv,{type:'bar',data:{labels:g.map(r=>r.label),datasets:[
-   {label:a.name,data:g.map(r=>r.a),backgroundColor:C.a,borderRadius:4},
-   {label:b.name,data:g.map(r=>r.b),backgroundColor:C.b,borderRadius:4}]},
-   options:{...opts(`Comparison (${u})`),indexAxis:'y',scales:{x:{title:{display:true,text:u}}}}}));
- }
-}
-
 function drawCharts(){
  destroyCharts();
  if(!window.Chart){document.querySelectorAll('.cg,#cb').forEach(e=>e.innerHTML='<div class=card><p class=mu>Charts need Chart.js. Open the app once while online.</p></div>');return}
+ const p=palette();
  if(view==='edit'){
   const d=cur.d;
-  const s=$('c-stats');if(s)chartRadar(s,d);
-  const e=$('c-eng');if(e)chartTorque(e,d);
-  const dr=$('c-drive');if(dr)chartGears(dr,d);
-  const su=$('c-susp');if(su)chartPair(su,'Suspension balance (front vs rear)',[
-    {l:'Spring height (mm)',f:d.shF,r:d.shR},{l:'Spring stiffness (kNm)',f:d.ssF,r:d.ssR},{l:'Stabilizer (kNm)',f:d.stF,r:d.stR},{l:'Camber (deg)',f:d.cbF,r:d.cbR},{l:'Damper slow bump',f:d.d1F,r:d.d1R},{l:'Damper fast bump',f:d.d2F,r:d.d2R},{l:'Damper slow rebound',f:d.d3F,r:d.d3R},{l:'Damper fast rebound',f:d.d4F,r:d.d4R}]);
-  const wh=$('c-whl');if(wh)chartPair(wh,'Wheel balance (front vs rear)',[
-    {l:'Width (mm)',f:d.wwF,r:d.wwR},{l:'Profile (mm)',f:d.wpF,r:d.wpR},{l:'Rim (in)',f:d.rdF,r:d.rdR},{l:'Grip (%)',f:d.wgF,r:d.wgR},{l:'Wheel offset (cm)',f:d.woF,r:d.woR},{l:'Tire pressure (bar)',f:d.tprF,r:d.tprR}]);
-  const bd=$('c-body');if(bd)chartPair(bd,'Downforce (front vs rear, kg)',[{l:'Downforce (kg)',f:d.dfF,r:d.dfR}]);
+  const st=$('c-stats');if(st)chartRadar(st,d,p);
+  const eng=$('c-eng');if(eng){chartTorque(eng,d,p);}
+  const dr=$('c-drive');if(dr){chartGears(dr,d,p)}
+  // one chart per item for every other numeric field and front/rear pair
+  SEC.forEach(s=>{
+   const box=$('c-'+s.id);if(!box)return;
+   s.f.forEach(f=>{
+    if(f.show&&!f.show(d))return;
+    if(f.t==='n'){
+     if(['tl','tm','th','gs'].includes(f.k)&&s.id==='eng')return; // torque is one curve
+     chartItem(box,f.l,f.u,[d[f.k]],p);
+    }
+    else if(f.t==='fr'){
+     const vals=[d[f.k+'F'],d[f.k+'R']];
+     if(f.front&&!f.front(d))vals[0]=null;if(f.rear&&!f.rear(d))vals[1]=null;
+     chartItem(box,f.l,f.u,vals,p);
+    }
+   });
+  });
+  // Stats: single values as their own charts (weight, power, top speed, acceleration, nitrous)
+  // (already covered by the generic loop above)
+  setTimeout(()=>{document.querySelectorAll('.cv').forEach(c=>c.classList.add('ready'));document.querySelectorAll('.shim').forEach(s=>s.remove())},250);
  } else if(view==='cmp'){
-  const a=find(cA),b=find(cB),b2=$('cb');if(a&&b&&b2){b2.innerHTML='';chartCompare(b2,a,b)}
+  const a=find(cA),b=find(cB),box=$('cb');
+  if(a&&b&&box){
+   const rows=compareRows(a,b);
+   if(!rows.length){box.innerHTML='<div class=card><p class=mu>Nothing to compare yet. Fill in values for either tune.</p></div>'}
+   rows.forEach(r=>{
+    const cv=card(box,`${r.label}${r.unit?' ('+r.unit+')':''}`,'small');
+    charts.push(new Chart(cv,{type:'bar',data:{labels:[a.name,b.name],datasets:[{data:[r.a,r.b],backgroundColor:[p.a,p.b],borderRadius:6,maxBarThickness:48}]},options:baseOpts('',p)}));
+   });
+   setTimeout(()=>{document.querySelectorAll('.cv').forEach(c=>c.classList.add('ready'));document.querySelectorAll('.shim').forEach(s=>s.remove())},250);
+  }
  }
 }
 
-// ---- events ----
+// ================= EVENTS =================
 function setv(el){
- const k=el.dataset.k;const v=el.value;
- if(el.dataset.neg){ // allow "-", "-." etc while typing
-  if(v===''||v==='-'||v==='.'||v==='-.'){delete cur.d[k];}
+ const k=el.dataset.k,v=el.value;
+ if(el.dataset.neg){
+  if(v===''||v==='-'||v==='.'||v==='-.'){delete cur.d[k]}
   else if(isFinite(+v)){cur.d[k]=+v}
   else return;
  } else if(el.type==='number'){if(v==='')delete cur.d[k];else if(isFinite(+v))cur.d[k]=+v}
  else if(v===''){delete cur.d[k]}
  else cur.d[k]=v;
- save();
+ cur.up=Date.now();save();
 }
-function refreshSummary(){const b=$('sumbox');if(b)b.innerHTML=summaryHtml(cur.d)}
+function refreshSummary(){const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur).replace('<div class=summary id=sumbox>','<div class=summary id=sumbox>')}
 function addTunes(a){
  if(!a.length)return toast('No valid tune found');
  DB.tunes.unshift(...a);save();
@@ -362,57 +525,73 @@ function addTunes(a){
 }
 document.addEventListener('input',e=>{
  const el=e.target;
- if(el.id==='q'){q=el.value;$('lst').innerHTML=lst();return}
+ if(el.id==='q'){q=el.value;$('lst').innerHTML=sortTunes(DB.tunes.filter(tuneMatches)).map(tileHtml).join('')||'<p class=mu style="grid-column:1/-1">No tunes match these filters.</p>';return}
+ if(!cur)return;
  if(el.dataset.r){
-  cur[el.dataset.r]=el.value;save();
+  snapshot(cur);
+  cur[el.dataset.r]=el.value;cur.up=Date.now();save();
   if(el.dataset.r==='name'){const h=$('ttl');if(h)h.textContent=el.value||'Tune'}
   return}
- if(el.dataset.txt){cur.d[el.dataset.k]=el.value;save();return}
- if(el.dataset.k){setv(el);refreshSummary()}
+ if(el.dataset.txt){snapshot(cur);cur.d[el.dataset.k]=el.value;cur.up=Date.now();save();return}
+ if(el.dataset.k){snapshot(cur);setv(el);const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur)}
 });
 document.addEventListener('change',e=>{
  const el=e.target;
  if(el.dataset.c){if(el.dataset.c==='a')cA=el.value;else cB=el.value;drawCharts();return}
  if(el.id==='fi'){el.files[0]&&el.files[0].text().then(t=>addTunes(parse(t)));return}
- if(el.dataset.r||el.dataset.txt)return;
+ if(!cur)return;
+ if(el.dataset.r==='cls'){snapshot(cur);cur.cls=el.value;cur.up=Date.now();save();renderEdit();return}
+ if(el.dataset.r)return;
  if(!el.dataset.k)return;
- setv(el);refreshSummary();
+ snapshot(cur);setv(el);
  if(el.tagName==='SELECT'||el.dataset.int){const sc=scrollY;renderEdit();scrollTo(0,sc)}
- else if(!el.dataset.neg||true){drawCharts()}
+ else drawCharts();
 });
 document.addEventListener('focusout',e=>{
  const el=e.target;
- if(el.dataset&&el.dataset.neg&&(el.value==='-'||el.value==='.'||el.value==='-.')){el.value='';setv(el);refreshSummary()}
+ if(el.dataset&&el.dataset.neg&&cur&&(el.value==='-'||el.value==='.'||el.value==='-.')){el.value='';setv(el)}
 });
 document.addEventListener('keydown',e=>{
  if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.k){const all=[...document.querySelectorAll('[data-k]')];const i=all.indexOf(e.target);if(i>-1&&all[i+1]){e.preventDefault();all[i+1].focus()}}
- if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='n'&&view==='list'){e.preventDefault();$('app').querySelector('[data-a=new]')?.click()}
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='n'&&view==='list'){e.preventDefault();document.querySelector('[data-a=new]')?.click()}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f'&&view==='list'){e.preventDefault();$('q')?.focus()}
 });
 document.addEventListener('toggle',e=>{const s=e.target.dataset&&e.target.dataset.s;if(s){e.target.open?open.add(s):open.delete(s)}},true);
+window.addEventListener('resize',()=>{if(view==='edit')applyMode()});
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-a]');if(!b)return;
  const a=b.dataset.a,id=b.dataset.id;
  if(a==='theme'){th=th==='dark'?'light':'dark';ls.set('cxth',th);applyTheme();view==='edit'?renderEdit():view==='cmp'?renderCmp():renderList()}
- else if(a==='new'){cur={id:uid(),name:'New tune',car:'',d:{}};DB.tunes.unshift(cur);save();renderEdit();const n=document.querySelector('[data-r=name]');if(n){n.focus();n.select()}}
- else if(a==='open'){cur=find(id);renderEdit()}
+ else if(a==='new'){cur={id:uid(),name:'New tune',car:'',cls:'C1',tags:[],d:{},up:Date.now(),hist:[]};DB.tunes.unshift(cur);touchRecent(cur.id);save();renderEdit();const n=document.querySelector('[data-r=name]');if(n){n.focus();n.select()}}
+ else if(a==='open'){cur=find(id);if(cur){touchRecent(id);save();renderEdit()}}
  else if(a==='back'){cur=null;renderList()}
  else if(a==='mode'){mode=b.dataset.m;applyMode()}
  else if(a==='jump'){const det=$('sec-'+b.dataset.s);if(det){det.open=true;open.add(b.dataset.s);det.scrollIntoView({behavior:'smooth',block:'start'})}}
- else if(a==='dup'){const t=find(id),c=JSON.parse(JSON.stringify(t));c.id=uid();c.name+=' (copy)';DB.tunes.unshift(c);save();renderList()}
+ else if(a==='filter'){const g=b.dataset.g;filt[g]=b.dataset.v;renderList()}
+ else if(a==='tag'){snapshot(cur);const x=b.dataset.tag;cur.tags=cur.tags||[];cur.tags=cur.tags.includes(x)?cur.tags.filter(t=>t!==x):[...cur.tags,x];cur.up=Date.now();save();renderEdit()}
+ else if(a==='dup'){const t=find(id),c=JSON.parse(JSON.stringify(t));c.id=uid();c.name+=' (copy)';c.hist=[];c.up=Date.now();DB.tunes.unshift(c);save();renderList()}
  else if(a==='del'){const t=find(id);if(!confirm(`Delete "${t.name}"? This cannot be undone.`))return;
-  const idx=DB.tunes.indexOf(t);DB.tunes.splice(idx,1);save();
+  const idx=DB.tunes.indexOf(t);DB.tunes.splice(idx,1);DB.recent=DB.recent.filter(x=>x!==id);save();
   undo={t,idx};toast('Tune deleted',{a:'undo',l:'Undo'});renderList()}
  else if(a==='undo'){if(undo){DB.tunes.splice(Math.min(undo.idx,DB.tunes.length),0,undo.t);save();undo=null;toast('Restored');renderList()}}
+ else if(a==='prune'){DB.tunes.forEach(t=>{t.hist=(t.hist||[]).slice(0,3)});save();toast('Old snapshots cleared')}
  else if(a==='compare')renderCmp();
  else if(a==='close'){const m=$('md');if(m)m.remove()}
+ else if(a==='history'){
+  const hs=cur.hist||[];
+  modal(`<b>Setup history</b><p class=mu style="font-size:13px">Saved automatically about every 10 minutes while you edit. Restoring first saves the current version, so you can undo a restore.</p>${hs.length?hs.map((h,i)=>`<div class=hist><div><b>${new Date(h.t).toLocaleString()}</b><br><small>${E(h.name)} · ${E(h.car)} · ${E(h.cls||'')} · ${pwOf(h.d)!=null?pwOf(h.d).toFixed(0)+' hp/t':'no power data'}</small></div><button data-a=restore data-i=${i}>Restore</button></div>`).join(''):'<p class=mu>No snapshots yet. Make a change and they will appear here.</p>'}`);
+ }
+ else if(a==='restore'){const h=(cur.hist||[])[+b.dataset.i];if(!h)return;
+  snapshot(cur,true);
+  cur.name=h.name;cur.car=h.car;cur.cls=h.cls||'C1';cur.tags=[...(h.tags||[])];cur.d=JSON.parse(JSON.stringify(h.d));cur.up=Date.now();save();
+  const m=$('md');if(m)m.remove();toast('Restored. Previous version saved.');renderEdit()}
  else if(a==='share'){
   const t=find(id),c=enc(strip(t)),l=location.href.split('#')[0]+'#t='+c;
   modal(`<b>Share "${E(t.name)}"</b><p class=mu>Link (tap to import):</p><textarea id=sl readonly>${E(l)}</textarea><div class=acts><button data-a=copy data-id=sl>Copy link</button></div><p class=mu>Code (paste into Import):</p><textarea id=sc readonly>${E(c)}</textarea><div class=acts><button data-a=copy data-id=sc>Copy code</button><button data-a=file data-id=${t.id}>Download .json</button></div>`);
  }
  else if(a==='copy'){const el=$(id);el.select();(navigator.clipboard?navigator.clipboard.writeText(el.value):Promise.reject()).catch(()=>document.execCommand('copy'));toast('Copied')}
  else if(a==='file'||a==='backup'){
-  const o=a==='file'?strip(find(id)):{v:1,tunes:DB.tunes.map(strip)};
+  const o=a==='file'?strip(find(id)):{v:2,tunes:DB.tunes.map(strip)};
   const n=a==='file'?find(id).name.replace(/\W+/g,'-'):'carx-backup-'+new Date().toISOString().slice(0,10);
   const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));l.download=n+'.json';document.body.append(l);l.click();l.remove();
  }
