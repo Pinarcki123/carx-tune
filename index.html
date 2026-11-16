@@ -15,124 +15,329 @@
 body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:env(safe-area-inset-bottom)}
 header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));background:var(--cd);border-bottom:1px solid var(--bd)}
 h1{font-size:17px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-button,select,input{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;min-height:38px}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;min-height:38px}
 button{cursor:pointer}button.p{background:var(--ac);border-color:var(--ac);color:#fff}
-.wrap{max-width:820px;margin:0 auto;padding:12px}
+.wrap{max-width:1100px;margin:0 auto;padding:12px}
 .card,details{background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
 summary{font-weight:600;cursor:pointer}
+.sec{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:900px){.sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 0 6px 8px;border-left:6px solid transparent;border-top:1px solid var(--bd)}
 .row label{flex:1 1 150px}.in{display:flex;align-items:center;gap:6px;flex:1 1 180px}.in input,.in select{flex:1;min-width:0;width:100%}
+.in span{font-size:12px;color:var(--mu)}
 small,.mu{color:var(--mu)}h3{margin:14px 0 4px;font-size:13px;color:var(--mu);text-transform:uppercase}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.ch{position:relative;height:220px;margin:10px 0}
+.cg{display:flex;flex-direction:column;gap:6px;align-content:start}
+.ch{position:relative;height:200px}
+.ch.tall{height:260px}
+.ch.hz{height:auto}
 #md .mo{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:12px;z-index:9}
 #md .card{width:100%;max-width:520px;max-height:90vh;overflow:auto;margin:0}
-textarea{width:100%;min-height:90px;font:12px monospace;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px}
+textarea{width:100%;min-height:90px;font:12px monospace;background:var(--bg)}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 14px;border-radius:20px;opacity:0;transition:.2s;pointer-events:none;z-index:10}#toast.on{opacity:1}
 .tc{display:flex;justify-content:space-between;gap:8px;align-items:center}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
-const T=['Stock','Street','Sport','Racing','Elite','Ultimate'],TC=['transparent','#9ca3af','#22c55e','#ef4444','#eab308','#a855f7'],STG=['Stock','Stage 1','Stage 2','Stage 3','Stage 4'],COL=['#e11d48','#2563eb','#16a34a'];
-const N=(k,l,u,x)=>({k,l,u,t:'n',...x}),FR=(k,l,u,x)=>({k,l,u,t:'fr',...x}),S=(k,l,o,x)=>({k,l,o,t:'s',...x}),SF=(k,l,o,x)=>({k,l,o,t:'sfr',...x}),X=(k,l)=>({k,l,t:'x'});
-const eli=d=>['Elite','Ultimate'].includes(d['p:Differential']);
+const T=['Stock','Street','Sport','Racing','Elite','Ultimate'];
+const TC=['transparent','#9ca3af','#22c55e','#ef4444','#eab308','#a855f7'];
+const STG=['Stock','Stage 1','Stage 2','Stage 3','Stage 4'];
+const COL={front:'#e11d48',rear:'#2563eb',a:'#e11d48',b:'#2563eb',good:'#16a34a',bad:'#dc2626',neu:'#6b7280'};
+
+// ---- field definitions ----
+// n = number, neg allows negative; fr = front/rear pair; s = select; x = text; sfr = select front/rear
+const N=(k,l,u,x={})=>({k,l,u,t:'n',...x});
+const FR=(k,l,u,x={})=>({k,l,u,t:'fr',...x});
+const S=(k,l,o,x={})=>({k,l,o,t:'s',...x});
+const SFR=(k,l,o,x={})=>({k,l,o,t:'sfr',...x});
+const X=(k,l)=>({k,l,t:'x'});
+const elite=d=>['Elite','Ultimate'].includes(d['p:Differential']);
 const dmp=d=>['Front dampers','Rear dampers'].some(p=>['Sport','Racing','Elite','Ultimate'].includes(d['p:'+p]));
 const pro=d=>['poF','poR'].some(k=>['Racing','Stretch'].includes(d[k]));
+const drvF=d=>elite(d)&&['AWD','FWD'].includes(d.dr);
+const drvR=d=>elite(d)&&['AWD','RWD'].includes(d.dr);
+const drvAny=d=>drvF(d)||drvR(d);
 const SEC=[
 {id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['km/h','mph']),N('acc','Acceleration','game value'),N('nos','Nitrous charge','game value'),N('gr','Grip','%')]},
-{id:'eng',t:'Engine',f:[X('en','Engine name'),S('et','Engine tier',T,{tier:1}),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
+{id:'eng',t:'Engine',f:[X('en','Engine name'),S('et','Engine tier',T),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
  p:['ECU','Turbo kit','Camshaft','Intake manifold','Nitro','Fuel system','Cylinder head','Engine block','Exhaust manifold','Exhaust']},
-{id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',l:'Gear ratios',t:'g'},N('lk','Differential locking','%'),FR('la','Lock acceleration','coef.',{show:eli}),FR('ld','Lock deceleration','coef.',{show:eli}),FR('pl','Preload','Nm',{show:eli})],
+{id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),S('tt2','Transmission tier',T),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',t:'g',l:'Gear ratios'},N('lk','Differential locking','%'),
+ FR('la','Lock acceleration','coef.',{show:drvAny,front:drvF,rear:drvR}),FR('ld','Lock deceleration','coef.',{show:drvAny,front:drvF,rear:drvR}),FR('pl','Preload','Nm',{show:drvAny,front:drvF,rear:drvR})],
  p:['Clutch','Differential','Transmission']},
-{id:'body',t:'Body',f:[N('bw','Weight','kg'),N('cm','Center of mass height','game value'),N('bd','Durability','game value'),N('ar','Air resistance','game value'),FR('df','Downforce','kg'),N('wd','Weight distribution','%'),N('gt','Gas tank','liters')],
+{id:'body',t:'Body',f:[N('bw','Weight','kg'),N('cm','Center of mass height','game value'),N('bd','Durability','game value'),N('ar','Air resistance','game value',{neg:1}),FR('df','Downforce','kg'),N('wd','Weight distribution','%'),N('gt','Gas tank','liters')],
  p:['Weight reduction','Gas tank','Front aero','Rear aero',['Body stage',STG]]},
-{id:'susp',t:'Suspension',f:[N('sw','Weight','kg'),N('sd','Durability','game value'),FR('sh','Spring height','mm'),FR('ss','Spring stiffness','kNm'),FR('st','Stabilizer stiffness','kNm'),FR('cb','Camber','deg'),N('cs','Caster angle','deg'),N('ak','Ackermann angle','deg'),N('sa','Steering angle','deg'),N('bf','Braking force','kNm'),N('bb','Front brake balance','%'),
+{id:'susp',t:'Suspension',f:[N('sw','Weight','kg'),N('sd','Durability','game value'),FR('sh','Spring height','mm',{neg:1}),FR('ss','Spring stiffness','kNm'),FR('st','Stabilizer stiffness','kNm'),FR('cb','Camber','deg',{neg:1}),N('cs','Caster angle','deg',{neg:1}),N('ak','Ackermann angle','deg',{neg:1}),N('sa','Steering angle','deg',{neg:1}),N('bf','Braking force','kNm'),N('bb','Front brake balance','%'),
  FR('d1','Damper slow bump','game value',{show:dmp}),FR('d2','Damper fast bump','game value',{show:dmp}),FR('d3','Damper slow rebound','game value',{show:dmp}),FR('d4','Damper fast rebound','game value',{show:dmp})],
  p:['Front arms','Rear arms','Front anti-roll bar','Rear anti-roll bar','Brake system','Front springs','Rear springs','Front dampers','Rear dampers']},
-{id:'whl',t:'Wheels',f:[N('wu','Durability','game value'),FR('ww','Width','mm'),FR('wp','Profile','mm'),SF('po','Profile option',['None','Racing','Stretch']),SF('pf','Profile offset',['-10','-5','0','+5','+10'],{show:pro}),FR('rd','Rim diameter','in'),FR('wg','Grip','%'),FR('wo','Wheel offset','cm'),FR('tpr','Tire pressure','bar'),S('tt','Tire type',['Street','Street+','Sport','Sport+','Racing','Racing+'])],
- p:['Tires','Spacers front','Spacers rear']}];
-const partF=p=>typeof p==='string'?{k:'p:'+p,l:p,t:'s',o:T,tier:1}:{k:'p:'+p[0],l:p[0],t:'s',o:p[1]};
+{id:'whl',t:'Wheels',f:[N('wu','Durability','game value'),FR('ww','Width','mm'),FR('wp','Profile','mm'),SFR('po','Profile option',['None','Racing','Stretch']),SFR('pf','Profile offset',['-10','-5','0','+5','+10'],{show:pro}),FR('rd','Rim diameter','in'),FR('wg','Grip','%'),FR('wo','Wheel offset','cm',{neg:1}),FR('tpr','Tire pressure','bar'),S('tt','Tire type',['Street','Street+','Sport','Sport+','Racing','Racing+'])],
+ p:['Tires','Spacers front','Spacers rear']}
+];
+// Part items: each part is a tier select (Stock..Ultimate) unless it's a Body stage tuple
+const partF=p=>typeof p==='string'?{k:'p:'+p,l:p,t:'s',o:T}:{k:'p:'+p[0],l:p[0],t:'s',o:p[1]};
+
+// Registry of valid keys and their rules (used for import validation)
 const REG={};
-SEC.forEach(s=>{s.f.forEach(f=>{if(f.t==='n')REG[f.k]={t:'n'};else if(f.t==='fr'){REG[f.k+'F']=REG[f.k+'R']={t:'n'}}else if(f.t==='s')REG[f.k]={t:'s',o:f.o};else if(f.t==='sfr'){REG[f.k+'F']=REG[f.k+'R']={t:'s',o:f.o}}else if(f.t==='x')REG[f.k]={t:'x'};else if(f.t==='g')for(let i=1;i<=10;i++)REG['g'+i]={t:'n'}});(s.p||[]).forEach(p=>{const f=partF(p);REG[f.k]={t:'s',o:f.o}})});
-const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+SEC.forEach(s=>{
+ s.f.forEach(f=>{
+  if(f.t==='n')REG[f.k]={t:'n'};
+  else if(f.t==='fr'){REG[f.k+'F']={t:'n'};REG[f.k+'R']={t:'n'}}
+  else if(f.t==='s')REG[f.k]={t:'s',o:f.o};
+  else if(f.t==='sfr'){REG[f.k+'F']={t:'s',o:f.o};REG[f.k+'R']={t:'s',o:f.o}}
+  else if(f.t==='x')REG[f.k]={t:'x'};
+  else if(f.t==='g')for(let i=1;i<=10;i++)REG['g'+i]={t:'n'};
+ });
+ (s.p||[]).forEach(p=>{const f=partF(p);REG[f.k]={t:'s',o:f.o}});
+});
+
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,9);
-const sel=(k,o,v)=>`<select data-k="${k}">${o.map(x=>`<option${x===(v??o[0])?' selected':''}>${E(x)}</option>`).join('')}</select>`;
-const num=(k,v,x)=>`<input type=number step=any inputmode=decimal data-k="${k}" value="${E(v??'')}"${x&&x.int?' data-int=1 min=1 max=10':''}>`;
+
+// ---- field rendering ----
+const numIn=(k,v,neg)=>`<input type=number step=any inputmode=decimal${neg?'':' min=0'} data-k="${k}" value="${E(v??'')}">`;
+const selIn=(k,o,v)=>`<select data-k="${k}">${o.map(x=>`<option${x===(v??o[0])?' selected':''}>${E(x)}</option>`).join('')}</select>`;
 function fld(f,d){
  if(f.show&&!f.show(d))return'';
- let c='';const u=f.u?`<small>${E(f.u)}</small>`:'';
- if(f.t==='n')c=num(f.k,d[f.k],f);
- else if(f.t==='fr')c=`<span>F</span>${num(f.k+'F',d[f.k+'F'])}<span>R</span>${num(f.k+'R',d[f.k+'R'])}`;
- else if(f.t==='s')c=sel(f.k,f.o,d[f.k]);
- else if(f.t==='sfr')c=`<span>F</span>${sel(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${sel(f.k+'R',f.o,d[f.k+'R'])}`;
- else if(f.t==='x')c=`<input data-k="${f.k}" maxlength=60 value="${E(d[f.k]||'')}">`;
- else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${num('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
- const b=f.tier?` style="border-left-color:${TC[Math.max(0,T.indexOf(d[f.k]||'Stock'))]}"`:'';
- return`<div class="row"${b}><label>${E(f.l)} ${u}</label><div class="in">${c}</div></div>`}
-function clean(t){if(!t||typeof t!=='object'||!t.d||typeof t.d!=='object')return null;const d={};
- for(const k of Object.keys(t.d)){const r=REG[k],v=t.d[k];if(!r)continue;
-  if(r.t==='n'&&typeof v==='number'&&isFinite(v))d[k]=v;else if(r.t==='s'&&r.o.includes(v))d[k]=v;else if(r.t==='x'&&typeof v==='string')d[k]=v.slice(0,60)}
- return{id:uid(),name:String(t.name||'Imported tune').slice(0,80),car:String(t.car||'').slice(0,80),d}}
+ let c='';const u=f.u?` <small>(${E(f.u)})</small>`:'';
+ if(f.t==='n')c=numIn(f.k,d[f.k],f.neg);
+ else if(f.t==='fr'){
+  const fOn=f.front?f.front(d):true, rOn=f.rear?f.rear(d):true;
+  if(f.front||f.rear){
+   c=(fOn?`<span>F</span>${numIn(f.k+'F',d[f.k+'F'],f.neg)}`:'')+(rOn?`<span>R</span>${numIn(f.k+'R',d[f.k+'R'],f.neg)}`:'');
+   if(!c)return'';
+  } else c=`<span>F</span>${numIn(f.k+'F',d[f.k+'F'],f.neg)}<span>R</span>${numIn(f.k+'R',d[f.k+'R'],f.neg)}`;
+ }
+ else if(f.t==='s')c=selIn(f.k,f.o,d[f.k]);
+ else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
+ else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}">`;
+ else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${numIn('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
+ const b=f.k&&f.k.startsWith('p:')||f.tier?'':'';
+ return`<div class=row><label>${E(f.l)}${u}</label><div class=in>${c}</div></div>`;
+}
+// Parts are rendered with tier-colored left border
+function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';const col=f.o===T?TC[Math.max(0,T.indexOf(v))]:'transparent';
+ return`<div class=row style="border-left-color:${col}"><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
+
+// ---- import validation ----
+function clean(t){
+ if(!t||typeof t!=='object'||!t.d||typeof t.d!=='object'||Array.isArray(t.d))return null;
+ const d={};
+ for(const k of Object.keys(t.d)){
+  const r=REG[k],v=t.d[k];if(!r)continue;
+  if(r.t==='n'&&typeof v==='number'&&isFinite(v))d[k]=v;
+  else if(r.t==='s'&&r.o.includes(v))d[k]=v;
+  else if(r.t==='x'&&typeof v==='string')d[k]=v.slice(0,60);
+ }
+ return{id:uid(),name:String(t.name||'Imported tune').slice(0,80),car:String(t.car||'').slice(0,80),d};
+}
 const enc=o=>btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-const dec=s=>JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))));
-function parse(s){s=String(s).trim();const i=s.indexOf('#t=');if(i>=0)s=s.slice(i+3);let o;
- try{o=s[0]==='{'||s[0]==='['?JSON.parse(s):dec(s)}catch(e){return[]}
- const a=Array.isArray(o)?o:o&&Array.isArray(o.tunes)?o.tunes:[o];return a.map(clean).filter(Boolean)}
+const dec=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s),c=>c.charCodeAt(0))))};
+function parse(s){
+ s=String(s).trim();const i=s.indexOf('#t=');if(i>=0)s=s.slice(i+3);
+ let o;try{o=s[0]==='{'||s[0]==='['?JSON.parse(s):dec(s)}catch(e){return[]}
+ const a=Array.isArray(o)?o:o&&Array.isArray(o.tunes)?o.tunes:[o];
+ return a.map(clean).filter(Boolean);
+}
 const strip=t=>({v:1,name:t.name,car:t.car,d:t.d});
-function flat(t){const m=[];SEC.forEach(s=>s.f.forEach(f=>{if(f.show&&!f.show(t.d))return;const L=s.t+' · '+f.l;
- if(f.t==='n')m.push([L,f.u,t.d[f.k]]);
- else if(f.t==='fr'){m.push([L+' F',f.u,t.d[f.k+'F']]);m.push([L+' R',f.u,t.d[f.k+'R']])}
- else if(f.t==='g')for(let i=1;i<=10;i++)m.push(['Gear '+i,'ratio',t.d['g'+i]])}));return m}
-function cmp(a,b){const M=new Map();[a,b].forEach((t,i)=>flat(t).forEach(([l,u,v])=>{const e=M.get(l)||{u:u||'value',v:[null,null]};if(typeof v==='number')e.v[i]=v;M.set(l,e)}));
- const G={};M.forEach((e,l)=>{if(e.v[0]==null&&e.v[1]==null)return;(G[e.u]=G[e.u]||[]).push([l,e.v])});return G}
-function groups(s,d){const G={};s.f.forEach(f=>{if((f.t==='n'||f.t==='fr')&&!(f.show&&!f.show(d))){const u=f.u||'value';(G[u]=G[u]||[]).push(f)}});const out=[];
- for(const u in G){const fs=G[u],fr=fs.some(f=>f.t==='fr');if(fs.length<2&&!fr)continue;const ds=[];
-  const col=(n,fn)=>{const v=fs.map(fn);if(v.some(x=>typeof x==='number'))ds.push({label:n,data:v.map(x=>typeof x==='number'?x:null)})};
-  if(fr){col('Front',f=>f.t==='fr'?d[f.k+'F']:null);col('Rear',f=>f.t==='fr'?d[f.k+'R']:null)}
-  if(fs.some(f=>f.t==='n'))col('Value',f=>f.t==='n'?d[f.k]:null);
-  if(ds.length)out.push({u,labels:fs.map(f=>f.l),ds})}return out}
-//UI
+
+// ---- chart data helpers ----
+// Flatten numeric values for comparison
+function flat(t){
+ const m=new Map();
+ SEC.forEach(s=>s.f.forEach(f=>{
+  if(f.show&&!f.show(t.d))return;
+  const L=s.t+' · '+f.l;
+  if(f.t==='n')m.set(L,{u:f.u||'',v:t.d[f.k]});
+  else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
+  else if(f.t==='g')for(let i=1;i<=10;i++)if(t.d['g'+i]!=null)m.set('Gear '+i,{u:'ratio',v:t.d['g'+i]});
+ }));
+ return m;
+}
+// Delta between tune A and tune B; null when either side is missing
+function delta(a,b){
+ const fa=flat(a),fb=flat(b),out=[];
+ fa.forEach((e,l)=>{const o=fb.get(l);if(!o)return;
+  if(typeof e.v!=='number'||typeof o.v!=='number')return;
+  out.push({label:l,unit:e.u,a:e.v,b:o.v,diff:e.v-o.v});
+ });
+ return out;
+}
+
+// ---- state ----
 const $=id=>document.getElementById(id),app=$('app');
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 let DB;try{DB=JSON.parse(ls.get('cxt'))||{tunes:[]}}catch(e){DB={tunes:[]}}
-if(!Array.isArray(DB.tunes))DB={tunes:[]};
+if(!DB||!Array.isArray(DB.tunes))DB={tunes:[]};
 let cur=null,view='list',charts=[],open=new Set(['stats']),q='',cA='',cB='';
 let th=ls.get('cxth')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-function applyTheme(){document.documentElement.dataset.theme=th;document.querySelector('meta[name=theme-color]').content=th==='dark'?'#181b22':'#ffffff'}
+function applyTheme(){document.documentElement.dataset.theme=th;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th==='dark'?'#181b22':'#ffffff'}
 const save=()=>{if(!ls.set('cxt',JSON.stringify(DB)))toast('Could not save: browser storage is blocked or full')};
 function toast(m){const t=$('toast');t.textContent=m;t.className='on';clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',2200)}
 const bar=(l,t)=>`<header>${l}<h1>${E(t)}</h1><button data-a=theme title="Toggle dark/light">${th==='dark'?'☀️ Light':'🌙 Dark'}</button></header>`;
 function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class=mo><div class=card>${h}<p><button data-a=close>Close</button></p></div></div>`}
-const lst=()=>{const r=DB.tunes.filter(t=>(t.name+' '+t.car+' '+(t.d.en||'')).toLowerCase().includes(q.toLowerCase()));
- return r.length?r.map(t=>`<div class=card><div class=tc><div><b>${E(t.name)}</b><br><small>${E(t.car)}${t.d.hp?' · '+t.d.hp+' hp':''}${t.d.en?' · '+E(t.d.en):''}</small></div></div><div class=acts><button class=p data-a=open data-id=${t.id}>Open</button><button data-a=share data-id=${t.id}>Share</button><button data-a=dup data-id=${t.id}>Duplicate</button><button data-a=del data-id=${t.id}>Delete</button></div></div>`).join(''):'<p class=mu>No tunes yet. Tap "New tune" or "Import".</p>'};
-function renderList(){view='list';app.innerHTML=bar('','CarX Tune Database')+`<div class=wrap><div class=acts><button class=p data-a=new>＋ New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div><input id=q placeholder="Search tunes" value="${E(q)}" style="width:100%;margin-bottom:12px"><div id=lst>${lst()}</div></div>`}
-function renderEdit(){view='edit';app.innerHTML=bar('<button data-a=back>‹ Tunes</button>',cur.name||'Tune')+`<div class=wrap><div class=card><label>Tune name</label><input data-r=name style="width:100%" value="${E(cur.name)}"><label>Car</label><input data-r=car style="width:100%" value="${E(cur.car)}"><div class=acts><button data-a=share data-id=${cur.id}>Share</button></div></div>`+
- SEC.map(s=>`<details data-s=${s.id}${open.has(s.id)?' open':''}><summary>${s.t}</summary><div>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h3>Parts</h3>'+s.p.map(p=>fld(partF(p),cur.d)).join(''):''}</div><div class=cg id=c-${s.id}></div></details>`).join('')+'</div>';drawCharts()}
-function renderCmp(){view='cmp';const o=DB.tunes.map(t=>`<option value=${t.id}>${E(t.name)}</option>`).join('');
- app.innerHTML=bar('<button data-a=back>‹ Tunes</button>','Compare')+`<div class=wrap>${DB.tunes.length<2?'<p class=mu>You need at least two tunes to compare.</p>':`<div class=acts><select data-c=a>${o}</select><select data-c=b>${o}</select></div><div id=cb></div>`}</div>`;
- if(DB.tunes.length>1){if(!DB.tunes.find(t=>t.id===cA))cA=DB.tunes[0].id;if(!DB.tunes.find(t=>t.id===cB))cB=DB.tunes[1].id;document.querySelector('[data-c=a]').value=cA;document.querySelector('[data-c=b]').value=cB;drawCharts()}}
-function mk(box,title,type,labels,ds,hz){const w=document.createElement('div');w.className='ch';if(hz)w.style.height=(60+labels.length*26)+'px';const cv=document.createElement('canvas');w.append(cv);box.append(w);
- charts.push(new Chart(cv,{type,data:{labels,datasets:ds.map((d,i)=>({...d,backgroundColor:COL[i],borderColor:COL[i],spanGaps:false}))},options:{responsive:true,maintainAspectRatio:false,indexAxis:hz?'y':'x',plugins:{title:{display:true,text:title},legend:{display:ds.length>1}}}}))}
-function drawCharts(){charts.forEach(c=>c.destroy());charts=[];
- if(!window.Chart){document.querySelectorAll('.cg,#cb').forEach(e=>e.innerHTML='<p class=mu>Charts need Chart.js. Open the app once while online.</p>');return}
- const cs=getComputedStyle(document.documentElement);Chart.defaults.color=cs.getPropertyValue('--tx').trim();Chart.defaults.borderColor=cs.getPropertyValue('--bd').trim();
- if(view==='edit')SEC.forEach(s=>{const box=$('c-'+s.id);if(!box)return;groups(s,cur.d).forEach(g=>mk(box,g.u,'bar',g.labels,g.ds));
-  if(s.id==='drive'){const n=Math.min(10,cur.d.ng|0),v=Array.from({length:n},(_,i)=>cur.d['g'+(i+1)]);if(v.some(x=>typeof x==='number'))mk(box,'Gear ratios','line',v.map((_,i)=>'Gear '+(i+1)),[{label:'Ratio',data:v.map(x=>typeof x==='number'?x:null)}])}});
- else if(view==='cmp'){const a=DB.tunes.find(t=>t.id===cA),b=DB.tunes.find(t=>t.id===cB),box=$('cb');if(!a||!b)return;box.innerHTML='';const G=cmp(a,b);
-  if(!Object.keys(G).length)box.innerHTML='<p class=mu>Nothing to compare yet. Fill in some numbers first.</p>';
-  for(const u in G)mk(box,u,'bar',G[u].map(x=>x[0]),[{label:a.name,data:G[u].map(x=>x[1][0])},{label:b.name,data:G[u].map(x=>x[1][1])}],true)}}
-function setv(el){const k=el.dataset.k,v=el.value;
- if(el.dataset.r)cur[k]=v;else if(el.type==='number'){if(v==='')delete cur.d[k];else if(isFinite(+v))cur.d[k]=+v}else if(v==='')delete cur.d[k];else cur.d[k]=v;save()}
-function addTunes(a){if(!a.length)return toast('No valid tune found');DB.tunes.unshift(...a);save();const m=$('md');if(m)m.remove();toast(a.length+' tune(s) imported');if(location.hash.startsWith('#t='))history.replaceState(null,'',location.pathname);renderList()}
 const find=id=>DB.tunes.find(t=>t.id===id);
-document.addEventListener('input',e=>{const el=e.target;if(el.id==='q'){q=el.value;$('lst').innerHTML=lst();return}if(el.dataset.k||el.dataset.r)setv(el)});
-document.addEventListener('change',e=>{const el=e.target;
+const lst=()=>{
+ const r=DB.tunes.filter(t=>(t.name+' '+t.car+' '+(t.d.en||'')).toLowerCase().includes(q.toLowerCase()));
+ return r.length?r.map(t=>`<div class=card><div><b>${E(t.name)}</b><br><small>${E(t.car)}${t.d.hp?' · '+t.d.hp+' hp':''}${t.d.en?' · '+E(t.d.en):''}</small></div><div class=acts><button class=p data-a=open data-id=${t.id}>Open</button><button data-a=share data-id=${t.id}>Share</button><button data-a=dup data-id=${t.id}>Duplicate</button><button data-a=del data-id=${t.id}>Delete</button></div></div>`).join(''):'<p class=mu>No tunes yet. Tap "New tune" or "Import".</p>'};
+
+function renderList(){
+ view='list';destroyCharts();
+ app.innerHTML=bar('','CarX Tune Database')+`<div class=wrap><div class=acts><button class=p data-a=new>＋ New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div><input id=q placeholder="Search tunes" value="${E(q)}" style="width:100%;margin-bottom:12px"><div id=lst>${lst()}</div></div>`;
+}
+function renderEdit(){
+ view='edit';destroyCharts();
+ let h=bar('<button data-a=back>‹ Tunes</button>',cur.name||'Tune');
+ h+=`<div class=wrap><div class=card><label>Tune name</label><input data-r=name style="width:100%" value="${E(cur.name)}"><label>Car</label><input data-r=car style="width:100%" value="${E(cur.car)}"><div class=acts><button data-a=share data-id=${cur.id}>Share</button></div></div>`;
+ SEC.forEach(s=>{
+  h+=`<details data-s=${s.id}${open.has(s.id)?' open':''}><summary>${s.t}</summary><div class=sec><div>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h3>Parts</h3>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}</div><div class=cg id=c-${s.id}></div></div></details>`;
+ });
+ app.innerHTML=h+'</div>';
+ drawCharts();
+}
+function renderCmp(){
+ view='cmp';destroyCharts();
+ const o=DB.tunes.map(t=>`<option value=${t.id}>${E(t.name)}</option>`).join('');
+ app.innerHTML=bar('<button data-a=back>‹ Tunes</button>','Compare')+`<div class=wrap>${DB.tunes.length<2?'<p class=mu>You need at least two tunes to compare.</p>':`<div class=acts><select data-c=a>${o}</select><select data-c=b>${o}</select></div><div id=cb></div>`}</div>`;
+ if(DB.tunes.length>1){
+  if(!find(cA))cA=DB.tunes[0].id;if(!find(cB)||cB===cA)cB=DB.tunes.find(t=>t.id!==cA).id;
+  document.querySelector('[data-c=a]').value=cA;document.querySelector('[data-c=b]').value=cB;drawCharts();
+ }
+}
+
+// ---- charts ----
+function destroyCharts(){charts.forEach(c=>c.destroy());charts=[]}
+function box(parent,cls){const w=document.createElement('div');w.className='card '+(cls||'');w.style.margin='0';const cv=document.createElement('canvas');w.append(cv);parent.append(w);return cv}
+function opts(title){const cs=getComputedStyle(document.documentElement);const tx=cs.getPropertyValue('--tx').trim(),bd=cs.getPropertyValue('--bd').trim();
+ Chart.defaults.color=tx;Chart.defaults.borderColor=bd;
+ return{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:title,color:tx,font:{size:13}},legend:{labels:{color:tx}}}}}
+const num=v=>typeof v==='number'&&isFinite(v);
+
+// Engine torque: line curve across low/medium/high with peak marked
+function chartTorque(parent,d){
+ const pts=[['Low',d.tl],['Medium',d.tm],['High',d.th]];
+ if(!pts.some(p=>num(p[1])))return;
+ const vals=pts.map(p=>num(p[1])?p[1]:null);
+ const mx=Math.max(...vals.filter(num));const pk=vals.indexOf(mx);
+ const cv=box(parent,'ch');
+ charts.push(new Chart(cv,{type:'line',data:{labels:pts.map(p=>p[0]),datasets:[{label:'Torque (Nm)',data:vals,borderColor:COL.front,backgroundColor:COL.front+'33',fill:true,tension:.35,spanGaps:false,pointRadius:vals.map((_,i)=>i===pk?7:4),pointBackgroundColor:vals.map((_,i)=>i===pk?'#eab308':COL.front)}]},
+  options:{...opts('Torque curve (peak marked gold)'),scales:{y:{beginAtZero:false,title:{display:true,text:'Nm'}}}}}));
+}
+// Gear ratios: gear number vs ratio; gaps between gears shown in red
+function chartGears(parent,d){
+ const n=Math.min(10,Math.max(0,d.ng|0));const v=Array.from({length:n},(_,i)=>d['g'+(i+1)]);
+ if(!v.some(num))return;
+ const labels=v.map((_,i)=>'G'+(i+1));
+ const gaps=v.slice(1).map((x,i)=>num(x)&&num(v[i])?v[i]-x:null);
+ const cv=box(parent,'ch');
+ charts.push(new Chart(cv,{type:'line',data:{labels,datasets:[{label:'Ratio',data:v,borderColor:COL.rear,backgroundColor:COL.rear,tension:0,spanGaps:true,pointRadius:5},
+  {label:'Gap to next (ratio drop)',data:[null,...gaps.map(g=>g)].map(g=>null),hidden:true}]},
+  options:{...opts('Gear ratios (red dots = wide gap to next gear)'),scales:{y:{title:{display:true,text:'Ratio'}}}}}));
+ // colour wide gaps red after creation
+ const ch=charts[charts.length-1];
+ const avg=gaps.filter(num).reduce((a,b)=>a+Math.abs(b),0)/Math.max(1,gaps.filter(num).length);
+ ch.data.datasets[0].pointBackgroundColor=v.map((_,i)=>i===0?COL.rear:(num(gaps[i-1])&&Math.abs(gaps[i-1])>avg*1.5?COL.bad:COL.rear));
+ ch.update();
+}
+// Front vs rear balance bars centered on zero (handles negative values)
+function chartPair(parent,title,rows){
+ const valid=rows.filter(r=>num(r.f)||num(r.r));if(!valid.length)return;
+ const cv=box(parent,'ch');
+ charts.push(new Chart(cv,{type:'bar',data:{labels:valid.map(r=>r.l),datasets:[
+  {label:'Front',data:valid.map(r=>num(r.f)?r.f:null),backgroundColor:COL.front},
+  {label:'Rear',data:valid.map(r=>num(r.r)?r.r:null),backgroundColor:COL.rear}]},
+  options:{...opts(title),indexAxis:'y',scales:{x:{grid:{color:ctx=>ctx.tick.value===0?'#888':undefined},title:{display:true,text:'value (0 = centre)'}}}}}));
+ if(valid.length>0)parent.lastElementChild.style.height=Math.max(160,valid.length*34+80)+'px';
+}
+// Body radar: weight, downforce, air resistance, grip, acceleration, each scaled to its own max
+function chartRadar(parent,d){
+ const axes=[['Weight',d.bw],['Downforce (F)',d.dfF],['Air resistance',d.ar],['Grip',d.gr],['Acceleration',d.acc]];
+ if(!axes.some(a=>num(a[1])))return;
+ const vals=axes.map(a=>num(a[1])?a[1]:0);
+ const mx=Math.max(...vals.map(Math.abs),1);
+ const cv=box(parent,'ch tall');
+ charts.push(new Chart(cv,{type:'radar',data:{labels:axes.map(a=>a[0]),datasets:[{label:'This tune (relative to its own max)',data:vals.map(v=>Math.round(Math.abs(v)/mx*100)),borderColor:COL.front,backgroundColor:COL.front+'33',pointBackgroundColor:COL.front}]},
+  options:{...opts('Body & car profile'),scales:{r:{beginAtZero:true,max:100,ticks:{display:false},grid:{color:'#8883'},angleLines:{color:'#8883'}}}}}));
+}
+// Comparison: delta bars (A minus B). Green positive, red negative.
+function chartDelta(parent,a,b){
+ const rows=delta(a,b);
+ if(!rows.length){parent.innerHTML='<p class=mu>Nothing to compare yet. Fill in matching values for both tunes.</p>';return}
+ const groups={};rows.forEach(r=>{(groups[r.unit||'value']=groups[r.unit||'value']||[]).push(r)});
+ for(const u in groups){
+  const g=groups[u];const cv=box(parent,'ch');
+  charts.push(new Chart(cv,{type:'bar',data:{labels:g.map(r=>r.label),datasets:[{label:`${a.name} − ${b.name} (${u})`,data:g.map(r=>r.diff),backgroundColor:g.map(r=>r.diff>=0?COL.good:COL.bad)}]},
+   options:{...opts(`Delta (${u})`),indexAxis:'y',scales:{x:{title:{display:true,text:'A minus B'}}}}}));
+  parent.lastElementChild.style.height=Math.max(160,g.length*28+80)+'px';
+ }
+}
+
+function drawCharts(){
+ destroyCharts();
+ if(!window.Chart){document.querySelectorAll('.cg,#cb').forEach(e=>e.innerHTML='<p class=mu>Charts need Chart.js. Open the app once while online.</p>');return}
+ if(view==='edit'){
+  const d=cur.d;
+  const eng=$('c-eng');if(eng){chartTorque(eng,d)}
+  const dr=$('c-drive');if(dr){chartGears(dr,d)}
+  const su=$('c-susp');if(su){
+   chartPair(su,'Suspension balance (front vs rear)',[
+    {l:'Spring height (mm)',f:d.shF,r:d.shR},{l:'Spring stiffness (kNm)',f:d.ssF,r:d.ssR},{l:'Stabilizer (kNm)',f:d.stF,r:d.stR},{l:'Camber (deg)',f:d.cbF,r:d.cbR},{l:'Damper slow bump',f:d.d1F,r:d.d1R},{l:'Damper fast bump',f:d.d2F,r:d.d2R},{l:'Damper slow rebound',f:d.d3F,r:d.d3R},{l:'Damper fast rebound',f:d.d4F,r:d.d4R}]);
+  }
+  const wh=$('c-whl');if(wh){
+   chartPair(wh,'Wheel balance (front vs rear)',[
+    {l:'Width (mm)',f:d.wwF,r:d.wwR},{l:'Profile (mm)',f:d.wpF,r:d.wpR},{l:'Rim (in)',f:d.rdF,r:d.rdR},{l:'Grip (%)',f:d.wgF,r:d.wgR},{l:'Wheel offset (cm)',f:d.woF,r:d.woR},{l:'Tire pressure (bar)',f:d.tprF,r:d.tprR}]);
+  }
+  const bd=$('c-body');if(bd){
+   chartRadar(bd,d);
+   chartPair(bd,'Downforce (front vs rear, kg)',[{l:'Downforce (kg)',f:d.dfF,r:d.dfR}]);
+  }
+ } else if(view==='cmp'){
+  const a=find(cA),b=find(cB),box2=$('cb');
+  if(a&&b){box2.innerHTML='';chartDelta(box2,a,b)}
+ }
+}
+
+// ---- events ----
+function setv(el){
+ const k=el.dataset.k;
+ if(el.dataset.r){cur[k]=el.value;save();return}
+ const v=el.value;
+ if(el.type==='number'){
+  if(v===''){delete cur.d[k];}
+  else if(isFinite(+v)){cur.d[k]=+v}
+ } else if(v===''){delete cur.d[k]}
+ else cur.d[k]=v;
+ save();
+}
+function addTunes(a){
+ if(!a.length)return toast('No valid tune found');
+ DB.tunes.unshift(...a);save();
+ const m=$('md');if(m)m.remove();
+ toast(a.length+' tune(s) imported');
+ if(location.hash.startsWith('#t='))history.replaceState(null,'',location.pathname);
+ renderList();
+}
+document.addEventListener('input',e=>{
+ const el=e.target;
+ if(el.id==='q'){q=el.value;$('lst').innerHTML=lst();return}
+ // Name/car/text fields: save only, never redraw (keeps focus and typed text)
+ if(el.dataset.r||el.dataset.txt){setv(el);if(el.dataset.r&&el.dataset.r==='name'){const h=document.querySelector('h1');if(h)h.textContent=el.value||'Tune'}return}
+ if(el.dataset.k)setv(el);
+});
+document.addEventListener('change',e=>{
+ const el=e.target;
  if(el.dataset.c){if(el.dataset.c==='a')cA=el.value;else cB=el.value;drawCharts();return}
  if(el.id==='fi'){el.files[0]&&el.files[0].text().then(t=>addTunes(parse(t)));return}
- if(!el.dataset.k&&!el.dataset.r)return;setv(el);if(el.dataset.r)return;if(el.tagName==='SELECT'||el.dataset.int)renderEdit();else drawCharts()});
+ if(el.dataset.r||el.dataset.txt)return;
+ if(!el.dataset.k)return;
+ setv(el);
+ // selects and integer fields can change which rows show, so redraw the edit view
+ if(el.tagName==='SELECT'||el.dataset.int){const sc=scrollY;renderEdit();scrollTo(0,sc)}
+ else drawCharts();
+});
 document.addEventListener('toggle',e=>{const s=e.target.dataset&&e.target.dataset.s;if(s){e.target.open?open.add(s):open.delete(s)}},true);
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');if(!b)return;
+ const a=b.dataset.a,id=b.dataset.id;
  if(a==='theme'){th=th==='dark'?'light':'dark';ls.set('cxth',th);applyTheme();view==='edit'?renderEdit():view==='cmp'?renderCmp():renderList()}
  else if(a==='new'){cur={id:uid(),name:'New tune',car:'',d:{}};DB.tunes.unshift(cur);save();renderEdit()}
  else if(a==='open'){cur=find(id);renderEdit()}
@@ -141,13 +346,18 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  else if(a==='del'){if(confirm('Delete this tune?')){DB.tunes=DB.tunes.filter(t=>t.id!==id);save();renderList()}}
  else if(a==='compare')renderCmp();
  else if(a==='close'){const m=$('md');if(m)m.remove()}
- else if(a==='share'){const t=find(id),c=enc(strip(t)),l=location.href.split('#')[0]+'#t='+c;
-  modal(`<b>Share "${E(t.name)}"</b><p>Link (tap-to-import):</p><textarea id=sl readonly>${E(l)}</textarea><button data-a=copy data-id=sl>Copy link</button><p>Code (paste into Import):</p><textarea id=sc readonly>${E(c)}</textarea><button data-a=copy data-id=sc>Copy code</button><p><button data-a=file data-id=${t.id}>Download .json file</button></p>`)}
+ else if(a==='share'){
+  const t=find(id),c=enc(strip(t)),l=location.href.split('#')[0]+'#t='+c;
+  modal(`<b>Share "${E(t.name)}"</b><p>Link (tap to import):</p><textarea id=sl readonly>${E(l)}</textarea><button data-a=copy data-id=sl>Copy link</button><p>Code (paste into Import):</p><textarea id=sc readonly>${E(c)}</textarea><button data-a=copy data-id=sc>Copy code</button><p><button data-a=file data-id=${t.id}>Download .json file</button></p>`);
+ }
  else if(a==='copy'){const el=$(id);el.select();(navigator.clipboard?navigator.clipboard.writeText(el.value):Promise.reject()).catch(()=>document.execCommand('copy'));toast('Copied')}
- else if(a==='file'||a==='backup'){const o=a==='file'?strip(find(id)):{v:1,tunes:DB.tunes.map(strip)},n=a==='file'?find(id).name.replace(/\W+/g,'-'):'carx-backup-'+new Date().toISOString().slice(0,10);
-  const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));l.download=n+'.json';document.body.append(l);l.click();l.remove()}
- else if(a==='import')modal('<b>Import</b><p>Paste a tune code or link:</p><textarea id=ic></textarea><p><button class=p data-a=doimport>Import</button></p><p>Or choose a .json tune/backup file:</p><input type=file id=fi accept=".json,.txt,application/json">');
- else if(a==='doimport')addTunes(parse($('ic').value)).valueOf;
+ else if(a==='file'||a==='backup'){
+  const o=a==='file'?strip(find(id)):{v:1,tunes:DB.tunes.map(strip)};
+  const n=a==='file'?find(id).name.replace(/\W+/g,'-'):'carx-backup-'+new Date().toISOString().slice(0,10);
+  const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));l.download=n+'.json';document.body.append(l);l.click();l.remove();
+ }
+ else if(a==='import')modal('<b>Import</b><p>Paste a tune code or link:</p><textarea id=ic></textarea><p><button class=p data-a=doimport>Import</button></p><p>Or choose a .json tune or backup file:</p><input type=file id=fi accept=".json,.txt,application/json">');
+ else if(a==='doimport')addTunes(parse($('ic').value));
 });
 applyTheme();renderList();
 if(location.hash.startsWith('#t=')){modal('<b>Import</b><p>A shared tune was opened:</p><textarea id=ic>'+E(location.hash)+'</textarea><p><button class=p data-a=doimport>Import it</button></p>')}
