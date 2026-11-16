@@ -4,125 +4,183 @@
 <title>CarX Tune Database</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#f2f2f7">
+<meta name="theme-color" content="#051F20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CarX Tunes">
 <style>
-:root{--btnTx:#fff;--bg:#f2f2f7;--cd:#fff;--tx:#1c1c1e;--mu:#8e8e93;--bd:rgba(60,60,67,.16);--a:#0a84ff;--b:#ff9f0a;--sh:0 1px 2px rgba(0,0,0,.05),0 6px 20px rgba(0,0,0,.06);--r:16px;color-scheme:light}
-[data-theme=dark]{--bg:#0A192F;--cd:#112240;--tx:#CCD6F6;--mu:#8892B0;--bd:rgba(136,146,176,.22);--a:#64FFDA;--b:#FFB86C;--btnTx:#0A192F;--sh:0 1px 2px rgba(0,0,0,.35);color-scheme:dark}
+/* ===== Forest Liquid Glass tokens ===== */
+:root{
+ --bgA:#DBF0DD;--bgB:#B6D8C8;--bgC:#89B399;
+ --tx:#051F20;--mu:#235047;--mu2:rgba(35,80,71,.72);
+ --glass:rgba(255,255,255,.38);--glassHi:rgba(255,255,255,.7);--glassBd:rgba(255,255,255,.62);
+ --field:rgba(255,255,255,.5);
+ --acc:#235047;--accTx:#DBF0DD;--a:#235047;--b:#89B399;
+ --shadow:0 1px 1px rgba(5,31,32,.06),0 10px 30px rgba(5,31,32,.10);
+ --r:22px;color-scheme:light}
+[data-theme=dark]{
+ --bgA:#0B2B26;--bgB:#051F20;--bgC:#153832;
+ --tx:#DBF0DD;--mu:#B6D8C8;--mu2:rgba(182,216,200,.7);
+ --glass:rgba(35,80,71,.30);--glassHi:rgba(182,216,200,.14);--glassBd:rgba(182,216,200,.20);
+ --field:rgba(5,31,32,.45);
+ --acc:#89B399;--accTx:#051F20;--a:#B6D8C8;--b:#89B399;
+ --shadow:0 1px 1px rgba(0,0,0,.25),0 12px 34px rgba(0,0,0,.35);
+ color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:calc(env(safe-area-inset-bottom) + 96px);transition:background .25s,color .25s}
-body.hasbar{padding-bottom:calc(env(safe-area-inset-bottom) + 120px)}
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--bd)}
+html{background:var(--bgB)}
+body{margin:0;min-height:100vh;font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;color:var(--tx);padding-bottom:calc(env(safe-area-inset-bottom) + 96px);transition:color .3s;background:transparent}
+body.hasbar{padding-bottom:calc(env(safe-area-inset-bottom) + 130px)}
+body::before{content:"";position:fixed;inset:-10%;z-index:-1;pointer-events:none;
+ background:
+  radial-gradient(60% 40% at 15% 5%,var(--bgC) 0%,transparent 70%),
+  radial-gradient(55% 45% at 95% 40%,color-mix(in srgb,var(--bgC) 70%,transparent) 0%,transparent 70%),
+  radial-gradient(70% 50% at 40% 100%,color-mix(in srgb,var(--bgC) 55%,transparent) 0%,transparent 70%),
+  linear-gradient(180deg,var(--bgA),var(--bgB) 60%,var(--bgA));
+ opacity:.55;transition:opacity .3s}
+[data-theme=dark] body::before{opacity:.9;background:
+  radial-gradient(60% 40% at 15% 0%,rgba(137,179,153,.22) 0%,transparent 70%),
+  radial-gradient(55% 45% at 95% 45%,rgba(35,80,71,.55) 0%,transparent 70%),
+  radial-gradient(70% 50% at 40% 100%,rgba(137,179,153,.12) 0%,transparent 70%),
+  linear-gradient(180deg,#0B2B26,#051F20 55%,#051F20)}
+/* glass material shared by every surface */
+.glass,header,.card,.cc,.tile,details,.fbox,.cgrp,.applybar,.tabbar,#md .sheet,.qs,.stat{
+ background:var(--glass);
+ -webkit-backdrop-filter:blur(36px) saturate(170%);backdrop-filter:blur(36px) saturate(170%);
+ border:.5px solid var(--glassBd);
+ box-shadow:inset 0 1px 0 var(--glassHi),var(--shadow)}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));border-radius:0 0 22px 22px;border-top:0}
 header h1{font-size:17px;font-weight:600;margin:0;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s}
 header h1.show,header h1.always{opacity:1}
-.saved{font-size:12px;color:var(--mu);min-width:64px;text-align:right}
-button,select,input,textarea{font:inherit;color:var(--tx);background:var(--cd);border:.5px solid var(--bd);border-radius:12px;padding:10px 12px;min-height:44px;-webkit-appearance:none;appearance:none;transition:transform .12s,background .2s}
-button{cursor:pointer;font-weight:500}button:active{transform:scale(.97)}
-button.p{background:var(--a);border-color:var(--a);color:var(--btnTx);font-weight:600}
-button.ghost{border-color:transparent;background:transparent;color:var(--a);padding-left:4px;padding-right:4px}
+.saved{font-size:12px;color:var(--mu2);min-width:64px;text-align:right}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--field);border:.5px solid var(--glassBd);border-radius:14px;padding:10px 12px;min-height:44px;-webkit-appearance:none;appearance:none;transition:transform .15s,background .25s,border-color .25s,box-shadow .25s;outline:none}
+button{cursor:pointer;font-weight:500}
+button:active{transform:scale(.97)}
+button:hover{background:color-mix(in srgb,var(--field) 80%,var(--glassHi))}
+button:focus-visible,input:focus-visible,select:focus-visible{box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 45%,transparent)}
+button:disabled{opacity:.45;cursor:default}
+button.p{background:var(--acc);border-color:transparent;color:var(--accTx);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+button.p:hover{background:color-mix(in srgb,var(--acc) 88%,#fff)}
+button.ghost{border-color:transparent;background:transparent;color:var(--acc);padding-left:4px;padding-right:4px}
+button.ghost:hover{background:transparent;opacity:.8}
 .wrap{max-width:1180px;margin:0 auto;padding:14px 16px}
 .large{font-size:32px;font-weight:700;margin:6px 2px 10px;letter-spacing:-.02em}
-.card{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:16px;margin-bottom:14px}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.mu{color:var(--mu)}small{color:var(--mu)}
+.card,.cc,.tile,.cgrp,.fbox,details{border-radius:var(--r);margin-bottom:14px}
+.card{padding:16px}
+.mu{color:var(--mu)}small{color:var(--mu2)}
 .acts{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
 .topline{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .topline input{flex:1;min-width:0}
-.topline .fbtn{flex:0 0 auto;position:relative}
-.topline .fbtn i{font-style:normal;display:inline-block;min-width:18px;margin-left:4px;color:var(--a);font-weight:700}
+.topline .fbtn{flex:0 0 auto}
+.topline .fbtn i{font-style:normal;display:inline-block;min-width:18px;margin-left:4px;color:var(--acc);font-weight:700}
 .sumline{font-size:14px;color:var(--mu);margin:0 2px 10px}
 .active{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
 .chips.wrapx{flex-wrap:wrap;overflow:visible}
-.chip{flex:0 0 auto;min-height:32px;padding:4px 12px;border-radius:999px;font-size:14px;background:var(--cd);border:.5px solid var(--bd)}
-.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
-h3{margin:16px 0 8px;font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
+.chip{flex:0 0 auto;min-height:32px;padding:4px 12px;border-radius:999px;font-size:14px;background:var(--field)}
+.chip.on{background:var(--acc);color:var(--accTx);border-color:transparent}
+h3{margin:16px 0 8px;font-size:12px;color:var(--mu2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .hrow{display:flex;gap:10px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.hrow::-webkit-scrollbar{display:none}
 .hrow .tile{flex:0 0 150px}
 .grid{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
 @media(min-width:1000px){.grid{grid-template-columns:1fr 1fr 1fr}}
-.tile{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform .15s}
+.tile{padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.tile:hover{transform:translateY(-2px)}
 .tile:active{transform:scale(.98)}
 .tile .top{display:flex;justify-content:space-between;align-items:center}
 .tile .car{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .nm{font-size:14px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .meta{font-size:13px;color:var(--mu)}
-.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#fff}
-.cnt{font-size:12px;font-weight:500;color:var(--mu);margin-left:auto;margin-right:10px}
-.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--a) 15%,transparent);color:var(--a)}
+.tile .meta{font-size:13px;color:var(--mu2)}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;color:#051F20}
+.cnt{font-size:12px;font-weight:500;color:var(--mu2);margin-left:auto;margin-right:10px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
 .ring{width:38px;height:38px;flex:0 0 auto}
 .ring text{font-size:9px;font-weight:700;fill:var(--tx)}
 #ptr{height:0;overflow:hidden;text-align:center;color:var(--mu);font-size:13px;transition:height .2s}
 .summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
 @media(min-width:700px){.summary{grid-template-columns:repeat(4,1fr)}}
-.stat{background:color-mix(in srgb,var(--bd) 35%,transparent);border-radius:12px;padding:10px 12px}
+.stat{border-radius:16px;padding:10px 12px}
 .stat b{display:block;font-size:18px}.stat small{font-size:12px}
-label.lbl{display:block;font-size:13px;color:var(--mu);margin:12px 0 6px}
+label.lbl{display:block;font-size:13px;color:var(--mu2);margin:12px 0 6px}
 .field{width:100%}
-details{background:var(--cd);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}
+details{overflow:hidden}
 summary{list-style:none;padding:16px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"›";color:var(--mu);font-size:22px;transform:rotate(90deg);transition:transform .2s}
+summary::after{content:"›";color:var(--mu2);font-size:22px;transform:rotate(90deg);transition:transform .25s}
 details[open] summary::after{transform:rotate(270deg)}
 .sec{padding:0 16px 18px}
-.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 0 12px 10px;border-top:.5px solid var(--bd);border-left:4px solid transparent}
+/* input rows: tier colour tints the whole row and box */
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 10px;border-top:.5px solid var(--glassBd);border-radius:14px;margin:4px 0;transition:background .3s}
 .row:first-child{border-top:0}
 .row label{flex:1 1 140px;font-size:15px;line-height:1.3}
 .in{display:flex;align-items:center;gap:6px;flex:1 1 220px;justify-content:flex-end;flex-wrap:wrap}
 .in input,.in select{flex:0 0 auto;width:118px;min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
-.in span{font-size:12px;color:var(--mu);min-width:12px;text-align:center}
-.unit{font-size:12px;color:var(--mu);margin-left:4px;white-space:nowrap}
+.in span{font-size:12px;color:var(--mu2);min-width:12px;text-align:center}
+.unit{font-size:12px;color:var(--mu2);margin-left:4px;white-space:nowrap}
+.tier{background:color-mix(in srgb,var(--tierc) 16%,transparent)}
+.tier select,.tier input{border-color:var(--tierc)!important;box-shadow:inset 0 0 0 1px var(--tierc)}
 @media(max-width:699px){.row{flex-direction:column;align-items:stretch;gap:8px}.row label{flex:none}.in{flex:none;width:100%;justify-content:flex-start}.in input,.in select{flex:1 1 90px;width:auto;min-width:0;max-width:100%}.in span{min-width:auto}}
-h4.ph{margin:14px 0 6px;font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
+h4.ph{margin:14px 0 6px;font-size:12px;color:var(--mu2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+/* floating tab bar */
 .tabbar{display:none}
 @media(max-width:899px){
- .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:30;background:color-mix(in srgb,var(--cd) 82%,transparent);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.18),0 0 0 .5px var(--bd);padding:6px;gap:2px;max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:none}
+ .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:30;border-radius:26px;padding:6px;gap:2px;max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:none}
  .tabbar::-webkit-scrollbar{display:none}
- .tabbar button{flex:0 0 auto;min-width:58px;border:0;background:transparent;color:var(--mu);font-size:11px;padding:6px 6px;min-height:50px;box-shadow:none;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:18px}
+ .tabbar button{flex:0 0 auto;min-width:58px;border:0;background:transparent;color:var(--mu);font-size:11px;padding:6px 6px;min-height:50px;box-shadow:none;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:20px;transition:background .25s,color .25s}
+ .tabbar button:hover{background:transparent}
  .tabbar button i{display:block;height:22px;width:22px}
  .tabbar button i svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
- .tabbar button.on{color:var(--a);background:color-mix(in srgb,var(--a) 14%,transparent);font-weight:600}
+ .tabbar button.on{color:var(--acc);background:color-mix(in srgb,var(--acc) 18%,transparent);font-weight:600}
 }
-#md{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;animation:fadeBg .2s}
+#md{position:fixed;inset:0;z-index:40;background:rgba(5,31,32,.4);display:flex;align-items:flex-end;justify-content:center;animation:fadeBg .2s}
 @keyframes fadeBg{from{opacity:0}}
-#md .sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--cd);border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .28s ease}
-@media(min-width:900px){#md{align-items:center}#md .sheet{border-radius:22px}}
+#md .sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:up .3s ease}
+@media(min-width:900px){#md{align-items:center}#md .sheet{border-radius:26px}}
 @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.hist{border-top:.5px solid var(--bd);padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hist{border-top:.5px solid var(--glassBd);padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
 textarea{width:100%;min-height:90px;font:12px ui-monospace,monospace}
-#toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:22px;opacity:0;transition:.25s;pointer-events:none;z-index:50;font-size:14px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(10px);background:var(--tx);color:var(--bg,#fff);padding:10px 16px;border-radius:22px;opacity:0;transition:.3s;pointer-events:none;z-index:50;font-size:14px;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+[data-theme=dark] #toast{color:#051F20}
 #toast.on{opacity:1;transform:translateX(-50%)}
 #toast button{pointer-events:auto}
 /* compare */
-.ck{display:flex;align-items:center;gap:12px;min-height:48px;border-top:.5px solid var(--bd);font-size:15px;padding:6px 0;cursor:pointer}
+.ctabs{display:flex;gap:6px;overflow-x:auto;padding:4px;margin-bottom:12px;scrollbar-width:none;border-radius:18px}
+.ctabs::-webkit-scrollbar{display:none}
+.ctabs button{flex:0 0 auto;border-radius:14px;background:transparent;border:0;min-height:38px;padding:6px 12px;font-size:14px;color:var(--mu)}
+.ctabs button.on{background:var(--acc);color:var(--accTx);font-weight:600}
+.ctabs button b{font-size:12px;margin-left:4px;opacity:.85}
+.ck{display:flex;align-items:center;gap:14px;min-height:50px;border-top:.5px solid var(--glassBd);font-size:16px;padding:6px 2px;cursor:pointer}
 .ck:first-child{border-top:0}
-.ck small{display:block;font-size:12px}
-.ck input{appearance:none;-webkit-appearance:none;width:24px;height:24px;border:2px solid var(--mu);border-radius:7px;background:transparent;flex:0 0 24px;margin:0;min-height:0;padding:0;cursor:pointer}
-.ck input:checked{background:var(--a) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6' fill='none' stroke='%230A192F' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;border-color:var(--a)}
-.applybar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:35;background:var(--cd);border:.5px solid var(--bd);border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.25);padding:10px 10px 10px 16px;display:flex;gap:10px;align-items:center}
+.ck input{appearance:none;-webkit-appearance:none;width:24px;height:24px;border:2px solid var(--mu2);border-radius:8px;background:transparent;flex:0 0 24px;margin:0;min-height:0;padding:0;cursor:pointer;transition:background .2s,border-color .2s}
+.ck input:checked{background:var(--acc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-6' fill='none' stroke='%23051F20' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat;border-color:var(--acc)}
+.applybar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:35;border-radius:24px;padding:10px 10px 10px 18px;display:flex;gap:10px;align-items:center}
 .applybar .info{flex:1;font-size:14px;color:var(--mu)}
 .applybar .info b{color:var(--tx)}
-.cc{background:var(--cd);border:.5px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:12px}
-.cc h4{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--mu)}
+.cc{padding:14px}
+.cc h4{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--mu)}
 .wrapc{position:relative;height:220px}.wrapc.big{height:280px}
-.cg{display:flex;flex-direction:column;gap:6px}
+.cg{display:flex;flex-direction:column;gap:12px}
+table.cmp{width:100%;border-collapse:collapse;font-size:14px}
+table.cmp td,table.cmp th{padding:9px 6px;border-top:.5px solid var(--glassBd);text-align:right;font-variant-numeric:tabular-nums}
+table.cmp th:first-child,table.cmp td:first-child{text-align:left;color:var(--mu)}
+table.cmp td.best{color:var(--acc);font-weight:700}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
-<nav class="tabbar" id="tabs"></nav>
+<nav class="tabbar glass" id="tabs"></nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 // ================= CONSTANTS =================
 const T=['Stock','Street','Sport','Racing','Elite','Ultimate'];
-const TC=['transparent','#8e8e93','#34c759','#ff453a','#ffd60a','#bf5af2'];
+// Tier colours: whole input row and box take the colour of the selected tier
+const TIERC={'Stock':null,'Street':'#8e8e93','Sport':'#34c759','Racing':'#ff453a','Elite':'#ffd60a','Ultimate':'#bf5af2'};
 const STG=['Stock','Stage 1','Stage 2','Stage 3','Stage 4'];
 const CLASSES=['C1','C2','C3','C4','C5','C6','CS','CS+'];
-const CCOL={'C1':'#0a84ff','C2':'#30b0c7','C3':'#34c759','C4':'#ffd60a','C5':'#ff9f0a','C6':'#ff6b35','CS':'#ff375f','CS+':'#ff453a'};
+const CCOL={'C1':'#89B399','C2':'#B6D8C8','C3':'#64B88A','C4':'#DBF0DD','C5':'#7FA08F','C6':'#A9C9B5','CS':'#235047','CS+':'#B6D8C8'};
 const TAGS=['drift','drag','grip','circuit'];
 const SNAP_GAP=10*60*1000, SNAP_MAX=20;
 // Fixed radar ranges (edit here). inv=true means a lower value scores higher.
+// Acceleration is an unknown game value between 0 and 25; lower is better.
 const RANGES={wt:{min:0,max:10000,inv:true},hp:{min:0,max:3000},top:{min:0,max:500},acc:{min:0,max:25,inv:true}};
 const ICONS={
  stats:'<svg viewBox="0 0 24 24"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 14l4-4.5"/><circle cx="12" cy="14" r="1.2"/></svg>',
@@ -132,6 +190,7 @@ const ICONS={
  susp:'<svg viewBox="0 0 24 24"><path d="M12 2.5v3"/><path d="M8 5.5h8l-8 3h8l-8 3h8l-8 3h8l-8 3h8"/><path d="M12 19.5v2"/></svg>',
  whl:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v6.5M12 14.5V21M3 12h6.5M14.5 12H21"/></svg>'
 };
+const SEC_TABS={stats:'Stats',eng:'Engine',drive:'Drive',body:'Body',susp:'Susp',whl:'Wheels'};
 
 // ================= FIELDS =================
 const N=(k,l,u,x={})=>({k,l,u,t:'n',...x});
@@ -146,7 +205,7 @@ const drvF=d=>elite(d)&&['AWD','FWD'].includes(d.dr);
 const drvR=d=>elite(d)&&['AWD','RWD'].includes(d.dr);
 const drvAny=d=>drvF(d)||drvR(d);
 const SEC=[
-{id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['km/h','mph']),N('acc','Acceleration (0–60)','s'),N('nos','Nitrous charge','game value')]},
+{id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['km/h','mph']),N('acc','Acceleration','value'),N('nos','Nitrous charge','game value')]},
 {id:'eng',t:'Engine',f:[X('en','Engine name'),S('et','Engine tier',T),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
  p:['ECU','Turbo kit','Camshaft','Intake manifold','Nitro','Fuel system','Cylinder head','Engine block','Exhaust manifold','Exhaust']},
 {id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),S('tt2','Transmission tier',T),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',t:'g',l:'Gear ratios'},N('lk','Differential locking','%'),
@@ -182,8 +241,11 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const pwOf=d=>(num(d.hp)&&num(d.wt)&&d.wt>0)?d.hp/(d.wt/1000):null;
 const topKmh=d=>num(d.top)?(d.su==='mph'?d.top*1.609344:d.top):null;
 const clsOf=t=>CLASSES.includes(t.cls)?t.cls:'C1';
+const radarScore=(key,val)=>{const r=RANGES[key];if(!num(val))return null;const s=clamp((val-r.min)/(r.max-r.min),0,1)*100;return r.inv?100-s:s};
 
 // ================= INPUTS =================
+const tierAttr=v=>TIERC[v]?` style="--tierc:${TIERC[v]}"`:'';
+const tierCls=v=>TIERC[v]?' tier':'';
 const numIn=(k,v,neg)=>neg
  ?`<input type=text inputmode=decimal pattern="-?[0-9]*[.]?[0-9]*" data-k="${k}" data-neg=1 value="${E(v??'')}" placeholder="—">`
  :`<input type=number step=any inputmode=decimal min=0 data-k="${k}" value="${E(v??'')}" placeholder="—">`;
@@ -191,7 +253,7 @@ const selIn=(k,o,v)=>`<select data-k="${k}">${o.map(x=>`<option${x===(v??o[0])?'
 function fld(f,d){
  if(f.show&&!f.show(d))return'';
  const u=f.u?`<span class=unit>${E(f.u)}</span>`:'';
- let c='';
+ let c='',cls='',ta='';
  if(f.t==='n')c=numIn(f.k,d[f.k],f.neg)+u;
  else if(f.t==='fr'){
   const fOn=f.front?f.front(d):true,rOn=f.rear?f.rear(d):true;
@@ -199,14 +261,14 @@ function fld(f,d){
   if(!c)return'';
   c+=u;
  }
- else if(f.t==='s')c=selIn(f.k,f.o,d[f.k])+u;
+ else if(f.t==='s'){c=selIn(f.k,f.o,d[f.k])+u;if(f.o===T){cls=tierCls(d[f.k]);ta=tierAttr(d[f.k])}}
  else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
  else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}" style="width:100%;text-align:left">`;
  else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${numIn('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
- return`<div class=row><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
+ return`<div class="row${cls}"${ta}><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
 }
-function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';const col=TC[Math.max(0,T.indexOf(v))];
- return`<div class=row style="border-left-color:${col}"><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
+function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';
+ return`<div class="row${tierCls(v)}"${tierAttr(v)}><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
 
 // ================= COMPLETION =================
 function filled(s,d){
@@ -223,7 +285,7 @@ function filled(s,d){
  return{n,t};
 }
 function completion(d){let n=0,t=0;SEC.forEach(s=>{const b=filled(s,d);n+=b.n;t+=b.t});return t?n/t:0}
-function ringSvg(pct){const c=2*Math.PI*16;return`<svg class=ring viewBox="0 0 38 38"><circle cx=19 cy=19 r=16 fill=none stroke="color-mix(in srgb,var(--bd) 90%,transparent)" stroke-width=4></circle><circle cx=19 cy=19 r=16 fill=none stroke="var(--a)" stroke-width=4 stroke-linecap=round stroke-dasharray="${(pct*c).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 19 19)"></circle><text x=19 y=22 text-anchor=middle>${Math.round(pct*100)}%</text></svg>`}
+function ringSvg(pct){const c=2*Math.PI*16;return`<svg class=ring viewBox="0 0 38 38"><circle cx=19 cy=19 r=16 fill=none stroke="color-mix(in srgb,var(--mu2) 35%,transparent)" stroke-width=4></circle><circle cx=19 cy=19 r=16 fill=none stroke="var(--acc)" stroke-width=4 stroke-linecap=round stroke-dasharray="${(pct*c).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 19 19)"></circle><text x=19 y=22 text-anchor=middle>${Math.round(pct*100)}%</text></svg>`}
 
 // ================= IMPORT / EXPORT =================
 function clean(t){
@@ -256,6 +318,7 @@ function flat(t){
   const L=s.t+' · '+f.l;
   if(f.t==='n')m.set(L,{u:f.u||'',v:t.d[f.k]});
   else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
+  else if(f.t==='s'&&f.k==='dr')m.set(s.t+' · Drive',{u:'',v:t.d.dr,text:true});
   else if(f.t==='g')for(let i=1;i<=10;i++)if(num(t.d['g'+i]))m.set('Gear '+i,{u:'ratio',v:t.d['g'+i]});
  }));
  const pw=pwOf(t.d);if(pw!=null)m.set('Overview · Power-to-weight',{u:'hp/t',v:pw});
@@ -263,12 +326,17 @@ function flat(t){
 }
 function compareRows(a,b){
  const fa=flat(a),fb=flat(b),keys=new Set([...fa.keys(),...fb.keys()]),rows=[];
- keys.forEach(k=>{const x=fa.get(k),y=fb.get(k);const va=x&&num(x.v)?x.v:null,vb=y&&num(y.v)?y.v:null;
-  if(va==null&&vb==null)return;rows.push({label:k,unit:(x||y).u||'value',a:va,b:vb})});
+ keys.forEach(k=>{const x=fa.get(k),y=fb.get(k);
+  const isText=(x&&x.text)||(y&&y.text);
+  const pick=z=>!z?null:(z.text?(z.v||null):(num(z.v)?z.v:null));
+  const va=pick(x),vb=pick(y);
+  if(va==null&&vb==null)return;
+  rows.push({label:k,unit:(x||y).u||'value',a:va,b:vb,text:!!isText})});
  return rows;
 }
-const CMP_GROUPS=['Car overall stats','Engine','Drivetrain','Body','Suspension','Wheels','Overview'];
+const CMP_GROUPS=['Engine','Drivetrain','Body','Suspension','Wheels','Overview'];
 function groupOf(label){if(label.startsWith('Gear '))return 'Drivetrain';if(label.startsWith('Overview'))return 'Overview';return label.split(' · ')[0]}
+const groupKey=g=>g==='Car overall stats'?'Stats':g;
 function metricName(label){return label.split(' · ').pop()}
 
 // ================= STATE =================
@@ -279,11 +347,11 @@ function loadDB(){let x;try{x=JSON.parse(ls.get('cxt'))}catch(e){x=null}
  x.tunes=x.tunes.map(t=>({hist:[],up:0,tags:[],cls:'C1',...t}));
  x.recent=Array.isArray(x.recent)?x.recent:[];return x}
 let DB=loadDB();
-let cur=null,view='list',charts=[],open=new Set(['stats']),q='',cA='',cB='',undo=null;
-let cmpStage='pick',cmpPending=new Set(),cmpApplied=new Set();
+let cur=null,view='list',charts=[],activeSec='stats',q='',cA='',cB='',undo=null;
+let cmpStage='pick',cmpTab='Engine',cmpPending=new Set(),cmpApplied=new Set();
 let filt={sort:'recent',drive:'',cls:'',tag:''};
 let th=ls.get('cxth')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
-function applyTheme(){document.documentElement.dataset.theme=th;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th==='dark'?'#0A192F':'#f2f2f7'}
+function applyTheme(){document.documentElement.dataset.theme=th;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th==='dark'?'#051F20':'#DBF0DD'}
 const find=id=>DB.tunes.find(t=>t.id===id);
 
 // ================= SAVE / STATUS =================
@@ -307,12 +375,12 @@ function snapshot(t,force){
 }
 function touchRecent(id){DB.recent=[id,...DB.recent.filter(x=>x!==id)].slice(0,3)}
 function toast(m,action){const t=$('toast');t.innerHTML=E(m)+(action?` <button class=ghost data-a=${action.a} style="min-height:auto;padding:0 0 0 8px;pointer-events:auto">${action.l}</button>`:'');t.className='on';clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',action?5000:2200)}
-function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class=sheet>${h}<div class=acts><button data-a=close style="flex:1">Done</button></div></div>`}
+function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class="sheet glass">${h}<div class=acts><button data-a=close style="flex:1">Done</button></div></div>`}
 const hdr=(left,title,right='',always=false)=>`<header>${left}<h1 id=ttl class="${always?'always':''}">${E(title)}</h1><span id=saved class=saved></span>${right}<button class=ghost data-a=theme>${th==='dark'?'Light':'Dark'}</button></header>`;
 
 // ================= DASHBOARD =================
 function tuneMatches(t){
- if(q){const ql=q.toLowerCase();const hay=[t.name,t.car,t.cls,...t.tags,...Object.keys(t.d).filter(k=>k.startsWith('p:')&&t.d[k]!=='Stock').map(k=>t.d[k]),t.d.en||'',t.d.tn||''].join(' ').toLowerCase();if(!hay.includes(ql))return false}
+ if(q){const ql=q.toLowerCase();const hay=[t.name,t.car,t.cls,...t.tags,...Object.keys(t.d).filter(k=>k.startsWith('p:')&&t.d[k]!=='Stock').map(k=>t.d[k]),t.d.en||'',t.d.tn||'',t.d.dr||''].join(' ').toLowerCase();if(!hay.includes(ql))return false}
  if(filt.drive&&t.d.dr!==filt.drive)return false;
  if(filt.cls&&clsOf(t)!==filt.cls)return false;
  if(filt.tag&&!(t.tags||[]).includes(filt.tag))return false;
@@ -331,12 +399,12 @@ function tileHtml(t){
   <div class=top><span class=badge style="background:${CCOL[cls]}">${cls}</span>${ringSvg(pct)}</div>
   <div class=car>${E(t.car||'No car set')}</div>
   <div class=nm>${E(t.name)}</div>
-  <div class=meta>${pw!=null?pw.toFixed(0)+' hp/t':'— hp/t'} · ${E(t.d.dr||'—')} · ${E(t.d.en||'No engine')}</div>
+  <div class=meta>${pw!=null?pw.toFixed(0)+' hp/t':'— hp/t'} · ${E(t.d.dr||'Drive —')} · ${E(t.d.en||'No engine')}</div>
   ${(t.tags||[]).length?`<div class=tags>${t.tags.map(x=>`<span class=tag>${x}</span>`).join('')}</div>`:''}
  </div>`}
 const activeFilters=()=>['drive','cls','tag'].filter(g=>filt[g]);
 function renderList(){
- destroyCharts();view='list';tabs.innerHTML='';
+ destroyCharts();view='list';tabs.innerHTML='';document.body.classList.remove('hasbar');
  const all=DB.tunes;
  const bestPw=all.reduce((m,t)=>{const p=pwOf(t.d);return p!=null&&(m==null||p>m.v)?{v:p,t}:m},null);
  const fast=all.reduce((m,t)=>{const k=topKmh(t.d);return k!=null&&(m==null||k>m.v)?{v:k,t}:m},null);
@@ -349,7 +417,7 @@ function renderList(){
   <div id=ptr>Pull to refresh…</div>
   <h2 class=large>Garage</h2>
   <div class=topline>
-   <input id=q type=search placeholder="Search tunes or parts" value="${E(q)}">
+   <input id=q type=search placeholder="Search tunes, cars, drive, parts" value="${E(q)}">
    <button class=fbtn data-a=openfilters>Filters${nAct?`<i>${nAct}</i>`:''}</button>
   </div>
   <div class=sumline>${E(sum)}</div>
@@ -358,7 +426,7 @@ function renderList(){
   <div class=acts><button class=p data-a=new>New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div>
   <div id=lst class=grid style="margin-top:4px">${list.length?list.map(tileHtml).join(''):`<p class=mu style="grid-column:1/-1">${all.length?'No tunes match these filters.':'No tunes yet. Tap "New tune" to start your first setup.'}</p>`}</div>
  </div>`;
- bindListScroll();
+ window.onscroll=()=>{const t=$('ttl');if(view!=='list'||!t)return;t.classList.toggle('show',scrollY>70)};
 }
 function openFilters(){
  const chip=(grp,val,label)=>`<button class="chip ${filt[grp]===val?'on':''}" data-a=filter data-g=${grp} data-v="${E(val)}">${E(label)}</button>`;
@@ -370,10 +438,6 @@ function openFilters(){
   <h3>Tag</h3><div class="chips wrapx">${chip('tag','','All')}${TAGS.map(x=>chip('tag',x,x)).join('')}</div>
   <div class=acts><button data-a=resetfilt>Reset all</button></div>`);
 }
-function bindListScroll(){
- const t=$('ttl');
- window.onscroll=()=>{if(view!=='list'||!t)return;t.classList.toggle('show',scrollY>70)};
-}
 // Pull to refresh (top of the dashboard only)
 let pY=null,pDy=0;
 document.addEventListener('touchstart',e=>{if(view==='list'&&scrollY===0)pY=e.touches[0].clientY;else pY=null},{passive:true});
@@ -381,7 +445,7 @@ document.addEventListener('touchmove',e=>{if(pY==null)return;pDy=e.touches[0].cl
 document.addEventListener('touchend',()=>{if(pY==null)return;const p=$('ptr');if(p)p.style.height='0';
  if(pDy>90){DB=loadDB();renderList();toast('Refreshed')}pY=null;pDy=0});
 
-// ================= EDITOR (inputs only, no charts) =================
+// ================= EDITOR =================
 function summaryHtml(t){
  const d=t.d,pw=pwOf(d);
  return `<div class=summary id=sumbox>
@@ -390,6 +454,9 @@ function summaryHtml(t){
   <div class=stat><small>Power-to-weight</small><b>${pw!=null?pw.toFixed(0)+' hp/t':'—'}</b></div>
   <div class=stat><small>Drive</small><b>${E(d.dr||'—')}</b></div>
  </div>`}
+function tabsHtml(){
+ return SEC.map(s=>`<button data-a=jump data-s=${s.id} class="${activeSec===s.id?'on':''}" aria-current="${activeSec===s.id?'true':'false'}"><i>${ICONS[s.id]}</i>${SEC_TABS[s.id]}</button>`).join('');
+}
 function renderEdit(){
  destroyCharts();view='edit';
  const cls=clsOf(cur);
@@ -404,10 +471,16 @@ function renderEdit(){
    <div class=acts><button data-a=share data-id=${cur.id}>Share</button><button data-a=history>History (${(cur.hist||[]).length})</button></div>
   </div>`;
  SEC.forEach(s=>{const b=filled(s,cur.d);
-  h+=`<details data-s=${s.id} id=sec-${s.id}${open.has(s.id)?' open':''}><summary>${s.t}<span class=cnt>${b.n}/${b.t}</span></summary><div class=sec><div class=inputs>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h4 class=ph>Parts</h4>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}</div></div></details>`;
+  h+=`<details data-s=${s.id} id=sec-${s.id}${activeSec===s.id?' open':''}><summary>${s.t}<span class=cnt>${b.n}/${b.t}</span></summary><div class=sec>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h4 class=ph>Parts</h4>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}</div></details>`;
  });
  app.innerHTML=h+'</div>';
- tabs.innerHTML=SEC.map(s=>`<button data-a=jump data-s=${s.id}><i>${ICONS[s.id]}</i>${{stats:'Stats',eng:'Engine',drive:'Drive',body:'Body',susp:'Susp',whl:'Wheels'}[s.id]}</button>`).join('');
+ tabs.innerHTML=tabsHtml();
+}
+// One section open at a time; the matching tab is highlighted
+function setActive(id){
+ activeSec=id;
+ SEC.forEach(s=>{const d=$('sec-'+s.id);if(d&&d.open!==(s.id===id))d.open=(s.id===id)});
+ tabs.querySelectorAll('button').forEach(b=>{const on=b.dataset.s===id;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'true':'false')});
 }
 
 // ================= COMPARE =================
@@ -425,13 +498,16 @@ function renderCmp(){
    <div class=mu style="font-size:13px"><span style="color:var(--a)">■</span> ${E(a.name)} &nbsp; <span style="color:var(--b)">■</span> ${E(b.name)}</div></div>`;
  let body='';
  if(cmpStage==='pick'){
-  const rows=compareRows(a,b).sort((x,y)=>CMP_GROUPS.indexOf(groupOf(x.label))-CMP_GROUPS.indexOf(groupOf(y.label)));
-  body=picker+`<div class=card style="padding:6px 16px"><h3 style="margin:8px 0 4px">Choose what to compare</h3>`+
-   rows.map(r=>`<label class=ck><input type=checkbox data-cm="${E(r.label)}"${cmpPending.has(r.label)?' checked':''}><span><small>${E(groupOf(r.label))}</small>${E(metricName(r.label))}</span></label>`).join('')+
+  const rows=compareRows(a,b);
+  const count=g=>rows.filter(r=>groupOf(r.label)===g&&cmpPending.has(r.label)).length;
+  const tabsBar=`<div class=ctabs>${CMP_GROUPS.map(g=>{const n=rows.filter(r=>groupOf(r.label)===g).length;if(!n)return'';return `<button class="${cmpTab===g?'on':''}" data-a=ctab data-g="${E(g)}">${g}<b>${count(g)||''}</b></button>`}).join('')}</div>`;
+  const items=rows.filter(r=>groupOf(r.label)===cmpTab);
+  body=picker+`<div class=card style="padding:6px 16px">${tabsBar}`+
+   items.map(r=>`<label class=ck><input type=checkbox data-cm="${E(r.label)}"${cmpPending.has(r.label)?' checked':''}><span>${E(metricName(r.label))}</span></label>`).join('')+
    `</div>`;
-  body+=`<div class=applybar><div class=info id=applyinfo><b>${cmpPending.size}</b> selected</div><button data-a=clearsel>Clear</button><button class=p data-a=apply>Apply</button></div>`;
+  body+=`<div class=applybar><div class=info id=applyinfo><b>${cmpPending.size}</b> selected</div><button data-a=clearsel>Clear</button><button class=p data-a=apply ${cmpPending.size?'':'disabled'}>Apply</button></div>`;
  } else {
-  body=picker+`<div id=results></div>`;
+  body=picker+`<div id=results class=cg></div>`;
  }
  app.innerHTML=hdr(cmpStage==='pick'?'<button class=ghost data-a=back>‹ Garage</button>':'<button class=ghost data-a=editsel>‹ Choose</button>','Compare','',true)+`<div class=wrap>${body}</div>`;
  if(cmpStage==='results'){
@@ -439,67 +515,84 @@ function renderCmp(){
   drawCompare();
  }
 }
-function applyInfoUpdate(){const i=$('applyinfo');if(i)i.innerHTML=`<b>${cmpPending.size}</b> selected`}
+function applyInfoUpdate(){const i=$('applyinfo');if(i)i.innerHTML=`<b>${cmpPending.size}</b> selected`;const b=document.querySelector('[data-a=apply]');if(b)b.disabled=!cmpPending.size}
 
 // Chart helpers
-function palette(){const cs=getComputedStyle(document.documentElement);return{a:cs.getPropertyValue('--a').trim(),b:cs.getPropertyValue('--b').trim(),tx:cs.getPropertyValue('--tx').trim(),bd:cs.getPropertyValue('--bd').trim()}}
+function palette(){const cs=getComputedStyle(document.documentElement);return{a:cs.getPropertyValue('--a').trim(),b:cs.getPropertyValue('--b').trim(),tx:cs.getPropertyValue('--tx').trim(),mu:cs.getPropertyValue('--mu2').trim(),bd:cs.getPropertyValue('--glassBd').trim()||'rgba(128,128,128,.25)'}}
 function baseOpts(p,legend){
- Chart.defaults.color=p.tx;Chart.defaults.borderColor=p.bd;Chart.defaults.font.family='-apple-system,system-ui,sans-serif';
+ Chart.defaults.color=p.tx;Chart.defaults.borderColor=p.bd;Chart.defaults.font.family='-apple-system,"SF Pro Text",Inter,system-ui,sans-serif';
  return{responsive:true,maintainAspectRatio:false,animation:false,plugins:{title:{display:false},legend:{display:!!legend,labels:{color:p.tx,boxWidth:10}}}}
 }
 function card(parent,title,big){
- const w=document.createElement('div');w.className='cc';
+ const w=document.createElement('div');w.className='cc glass';
  if(title)w.innerHTML=`<h4>${E(title)}</h4>`;
  const wr=document.createElement('div');wr.className='wrapc'+(big?' big':'');
  const cv=document.createElement('canvas');wr.append(cv);w.append(wr);parent.append(w);return cv;
 }
 function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[]}
+// Car overall stats: radar always shown, plus a table with lower-is-better marked
+function drawStats(box,a,b,p){
+ const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc)];
+ const va=ax(a),vb=ax(b);
+ const cv=card(box,'Car overall stats · radar (fixed scale)',true);
+ charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (light = high)','Power','Top speed','Acceleration (lower time = high)'],datasets:[
+  {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
+  {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,backgroundColor:p.b+'33',pointBackgroundColor:p.b,spanGaps:true}]},
+  options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
+ const rowsDef=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true]];
+ const cell=(t,key)=>{const v=key==='top'?topKmh(t.d):t.d[key];return num(v)?v:null};
+ let html='<table class=cmp><tr><th>Stat</th><th>'+E(a.name)+'</th><th>'+E(b.name)+'</th></tr>';
+ rowsDef.forEach(([name,key,unit,lowerBetter])=>{
+  const va2=cell(a,key),vb2=cell(b,key);
+  let ba='',bb='';
+  if(num(va2)&&num(vb2)&&va2!==vb2){const aBetter=lowerBetter?va2<vb2:va2>vb2;ba=aBetter?' class=best':'';bb=aBetter?'':' class=best'}
+  html+=`<tr><td>${name}${lowerBetter?' <small>(lower better)</small>':''}</td><td${ba}>${num(va2)?va2+(unit?' '+unit:''):'—'}</td><td${bb}>${num(vb2)?vb2+(unit?' '+unit:''):'—'}</td></tr>`;
+ });
+ html+='</table>';
+ const d=document.createElement('div');d.className='cc glass';d.innerHTML=`<h4>Car overall stats · values</h4>${html}`;box.append(d);
+}
 function drawCompare(){
  const a=find(cA),b=find(cB);if(!a||!b)return;
  const box=$('results');if(!box)return;
  box.innerHTML='';
  const p=palette();
+ drawStats(box,a,b,p);
  const rows=compareRows(a,b);
  const byLabel=new Map(rows.map(r=>[r.label,r]));
  const sel=[...cmpApplied].filter(l=>byLabel.has(l));
- if(!sel.length){box.innerHTML='<div class=card><p class=mu>Nothing selected. Tap "Choose" and tick some metrics.</p></div>';return}
+ if(!sel.length){box.insertAdjacentHTML('beforeend','<div class="cc glass"><p class=mu style="margin:0">Nothing selected. Tap "Choose", tick some metrics, then Apply.</p></div>');return}
  const used=new Set();
- // 1. Car overall stats: radar (fixed scale)
- if(sel.some(l=>groupOf(l)==='Car overall stats')){
-  const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc)];
-  const va=ax(a),vb=ax(b);
-  const cv=card(box,'Car overall stats · radar (fixed scale, 0–100)',true);
-  charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (light = high)','Power','Top speed','Acceleration (faster = high)'],datasets:[
-   {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
-   {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,backgroundColor:p.b+'33',pointBackgroundColor:p.b,spanGaps:true}]},
-   options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
-  sel.filter(l=>groupOf(l)==='Car overall stats').forEach(l=>used.add(l));
- }
- // 2. Torque: line curve (low / medium / high)
+ // Text rows (Drive): side by side
+ sel.filter(l=>byLabel.get(l).text).forEach(l=>{
+  const r=byLabel.get(l);used.add(l);
+  const d=document.createElement('div');d.className='cc glass';
+  d.innerHTML=`<h4>${E(metricName(l))}</h4><table class=cmp><tr><th></th><th>${E(a.name)}</th><th>${E(b.name)}</th></tr><tr><td>Drive</td><td>${E(r.a||'—')}</td><td>${E(r.b||'—')}</td></tr></table>`;
+  box.append(d);
+ });
+ // Torque: one line curve
  const torq=['Engine · Torque low','Engine · Torque medium','Engine · Torque high'].filter(l=>sel.includes(l));
  if(torq.length){
   const cv=card(box,'Torque curve · Nm (low → high)',true);
-  const labs=['Low','Medium','High'];
   const val=t=>['Engine · Torque low','Engine · Torque medium','Engine · Torque high'].map(l=>{const r=byLabel.get(l);return r?(t==='a'?r.a:r.b):null});
-  charts.push(new Chart(cv,{type:'line',data:{labels:labs,datasets:[
+  charts.push(new Chart(cv,{type:'line',data:{labels:['Low','Medium','High'],datasets:[
    {label:a.name,data:val('a'),borderColor:p.a,backgroundColor:p.a,tension:.35,spanGaps:true,pointRadius:5},
    {label:b.name,data:val('b'),borderColor:p.b,backgroundColor:p.b,tension:.35,spanGaps:true,pointRadius:5}]},
    options:baseOpts(p,true)}));
   torq.forEach(l=>used.add(l));
  }
- // 3. Gear ratios: line across gears
+ // Gear ratios: line across gears
  const gears=sel.filter(l=>/^Gear \d+$/.test(l));
  if(gears.length){
   const idx=gears.map(l=>+l.split(' ')[1]).sort((x,y)=>x-y);
   const cv=card(box,'Gear ratios · line per tune',true);
-  const pick=(t)=>idx.map(i=>{const r=byLabel.get('Gear '+i);return r?(t==='a'?r.a:r.b):null});
+  const pick=t=>idx.map(i=>{const r=byLabel.get('Gear '+i);return r?(t==='a'?r.a:r.b):null});
   charts.push(new Chart(cv,{type:'line',data:{labels:idx.map(i=>'G'+i),datasets:[
    {label:a.name,data:pick('a'),borderColor:p.a,backgroundColor:p.a,tension:0,spanGaps:true,pointRadius:5},
    {label:b.name,data:pick('b'),borderColor:p.b,backgroundColor:p.b,tension:0,spanGaps:true,pointRadius:5}]},
    options:baseOpts(p,true)}));
   gears.forEach(l=>used.add(l));
  }
- // 4. Front / rear pairs: grouped bars, front and rear side by side
+ // Front / rear pairs: grouped bars
  const bases=new Set(sel.filter(l=>!used.has(l)&&(l.endsWith(' F')||l.endsWith(' R'))).map(l=>l.slice(0,-2)));
  bases.forEach(base=>{
   const F=byLabel.get(base+' F'),R=byLabel.get(base+' R');
@@ -511,14 +604,13 @@ function drawCompare(){
    options:baseOpts(p,true)}));
   used.add(base+' F');used.add(base+' R');
  });
- // 5. Everything else: bar, Tune A vs Tune B
+ // Everything else: bar, Tune A vs Tune B
  sel.filter(l=>!used.has(l)).forEach(l=>{
   const r=byLabel.get(l);
-  const cv=card(box,`${l}${r.unit?' ('+r.unit+')':''}`,false);
+  const cv=card(box,`${metricName(l)} · ${groupOf(l)}${r.unit&&r.unit!=='value'?' ('+r.unit+')':''}`,false);
   charts.push(new Chart(cv,{type:'bar',data:{labels:[a.name,b.name],datasets:[{data:[r.a,r.b],backgroundColor:[p.a,p.b],borderRadius:6,maxBarThickness:44}]},options:baseOpts(p,false)}));
  });
 }
-const radarScore=(key,val)=>{const r=RANGES[key];if(!num(val))return null;const s=clamp((val-r.min)/(r.max-r.min),0,1)*100;return r.inv?100-s:s};
 
 // ================= EVENTS =================
 function setv(el){
@@ -562,8 +654,8 @@ document.addEventListener('change',e=>{
  if(el.dataset.r)return;
  if(!el.dataset.k)return;
  snapshot(cur);setv(el);
- const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur);
  if(el.tagName==='SELECT'||el.dataset.int){const sc=scrollY;renderEdit();scrollTo(0,sc)}
+ else{const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur)}
 });
 document.addEventListener('focusout',e=>{
  const el=e.target;
@@ -574,15 +666,19 @@ document.addEventListener('keydown',e=>{
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='n'&&view==='list'){e.preventDefault();document.querySelector('[data-a=new]')?.click()}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f'&&view==='list'){e.preventDefault();$('q')?.focus()}
 });
-document.addEventListener('toggle',e=>{const s=e.target.dataset&&e.target.dataset.s;if(s){e.target.open?open.add(s):open.delete(s)}},true);
+// Opening a section by its heading closes the others and updates the tab bar
+document.addEventListener('toggle',e=>{
+ const s=e.target.dataset&&e.target.dataset.s;
+ if(s&&e.target.open&&view==='edit')setActive(s);
+},true);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-a]');if(!b)return;
  const a=b.dataset.a,id=b.dataset.id;
  if(a==='theme'){th=th==='dark'?'light':'dark';ls.set('cxth',th);applyTheme();view==='edit'?renderEdit():view==='cmp'?renderCmp():renderList()}
- else if(a==='new'){cur={id:uid(),name:'New tune',car:'',cls:'C1',tags:[],d:{},up:Date.now(),hist:[]};DB.tunes.unshift(cur);touchRecent(cur.id);save();renderEdit();const n=document.querySelector('[data-r=name]');if(n){n.focus();n.select()}}
- else if(a==='open'){cur=find(id);if(cur){touchRecent(id);save();renderEdit()}}
- else if(a==='back'){cur=null;document.body.classList.remove('hasbar');renderList()}
- else if(a==='jump'){const det=$('sec-'+b.dataset.s);if(det){det.open=true;open.add(b.dataset.s);det.scrollIntoView({behavior:'smooth',block:'start'})}}
+ else if(a==='new'){cur={id:uid(),name:'New tune',car:'',cls:'C1',tags:[],d:{},up:Date.now(),hist:[]};DB.tunes.unshift(cur);touchRecent(cur.id);save();activeSec='stats';renderEdit();const n=document.querySelector('[data-r=name]');if(n){n.focus();n.select()}}
+ else if(a==='open'){cur=find(id);if(cur){touchRecent(id);save();activeSec='stats';renderEdit()}}
+ else if(a==='back'){cur=null;renderList()}
+ else if(a==='jump'){setActive(b.dataset.s);const det=$('sec-'+b.dataset.s);if(det)det.scrollIntoView({behavior:'smooth',block:'start'})}
  else if(a==='openfilters')openFilters();
  else if(a==='filter'){filt[b.dataset.g]=b.dataset.v;renderList();openFilters()}
  else if(a==='unfilter'){filt[b.dataset.g]='';renderList()}
@@ -595,8 +691,9 @@ document.addEventListener('click',e=>{
  else if(a==='undo'){if(undo){DB.tunes.splice(Math.min(undo.idx,DB.tunes.length),0,undo.t);save();undo=null;toast('Restored');renderList()}}
  else if(a==='prune'){DB.tunes.forEach(t=>{t.hist=(t.hist||[]).slice(0,3)});save();toast('Old snapshots cleared')}
  else if(a==='compare'){cmpStage='pick';renderCmp()}
- else if(a==='clearsel'){cmpPending=new Set();document.querySelectorAll('[data-cm]').forEach(c=>c.checked=false);applyInfoUpdate()}
- else if(a==='apply'){cmpApplied=new Set(cmpPending);cmpStage='results';renderCmp();scrollTo(0,0)}
+ else if(a==='ctab'){cmpTab=b.dataset.g;renderCmp()}
+ else if(a==='clearsel'){cmpPending=new Set();renderCmp()}
+ else if(a==='apply'){if(!cmpPending.size)return;cmpApplied=new Set(cmpPending);cmpStage='results';renderCmp();scrollTo(0,0)}
  else if(a==='editsel'){cmpStage='pick';renderCmp()}
  else if(a==='close'){const m=$('md');if(m)m.remove()}
  else if(a==='history'){
