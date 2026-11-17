@@ -82,7 +82,9 @@ button.ghost:hover{background:transparent;opacity:.8}
 .chip.on{background:var(--acc);color:var(--accTx);border-color:transparent}
 h3{margin:16px 0 8px;font-size:12px;color:var(--mu2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .hrow{display:flex;gap:10px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.hrow::-webkit-scrollbar{display:none}
-.hrow .tile{flex:0 0 140px}
+.hrow .tile{flex:0 0 170px;aspect-ratio:auto;min-height:150px;overflow:visible;justify-content:flex-start;gap:4px}
+.hrow .tile .car,.hrow .tile .nm{white-space:normal;overflow:visible;line-height:1.25}
+.hrow .tile .meta{white-space:normal;line-height:1.3}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(min-width:1000px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -167,16 +169,21 @@ table.cmp td,table.cmp th{padding:9px 6px;border-top:.5px solid var(--glassBd);t
 table.cmp th:first-child,table.cmp td:first-child{text-align:left;color:var(--mu)}
 table.cmp td.best{color:var(--acc);font-weight:700}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.tile{position:relative;-webkit-touch-callout:none;user-select:none}
+.tile.sel{outline:2px solid var(--acc);outline-offset:2px}
+.tick{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid var(--mu2);background:transparent}
+.tick.on{background:var(--acc);border-color:var(--acc);box-shadow:inset 0 0 0 4px var(--glass)}
+button.danger{color:#ff6b6b}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
 <nav class="tabbar glass" id="tabs"></nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 // ================= CONSTANTS =================
-const T=['Stock','Street','Sport','Racing','Elite','Ultimate'];
+const T=['N/A','Stock','Street','Sport','Racing','Elite','Ultimate'];
 // Tier colours: whole input row and box take the colour of the selected tier
-const TIERC={'Stock':null,'Street':'#8e8e93','Sport':'#34c759','Racing':'#ff453a','Elite':'#ffd60a','Ultimate':'#bf5af2'};
-const STG=['Stock','Stage 1','Stage 2','Stage 3','Stage 4'];
+const TIERC={'N/A':null,'Stock':null,'Street':'#8e8e93','Sport':'#34c759','Racing':'#ff453a','Elite':'#ffd60a','Ultimate':'#bf5af2'};
+const STG=['N/A','Stock','Stage 1','Stage 2','Stage 3','Stage 4'];
 const CLASSES=['C1','C2','C3','C4','C5','C6','CS','CS+'];
 const CCOL={'C1':'#89B399','C2':'#B6D8C8','C3':'#64B88A','C4':'#DBF0DD','C5':'#7FA08F','C6':'#A9C9B5','CS':'#235047','CS+':'#B6D8C8'};
 const TAGS=['drift','drag','grip','circuit'];
@@ -210,9 +217,9 @@ const drvR=d=>elite(d)&&['AWD','RWD'].includes(d.dr);
 const drvAny=d=>drvF(d)||drvR(d);
 const SEC=[
 {id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['km/h','mph']),N('acc','Acceleration','value'),N('nos','Nitrous charge','game value')]},
-{id:'eng',t:'Engine',f:[X('en','Engine name'),S('et','Engine tier',T),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
+{id:'eng',t:'Engine',f:[X('en','Engine name'),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
  p:['ECU','Turbo kit','Camshaft','Intake manifold','Nitro','Fuel system','Cylinder head','Engine block','Exhaust manifold','Exhaust']},
-{id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),S('tt2','Transmission tier',T),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',t:'g',l:'Gear ratios'},N('lk','Differential locking','%'),
+{id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),S('tt2','Transmission tier',T),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['N/A','AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',t:'g',l:'Gear ratios'},N('lk','Differential locking','%'),
  FR('la','Lock acceleration','coef.',{show:drvAny,front:drvF,rear:drvR}),FR('ld','Lock deceleration','coef.',{show:drvAny,front:drvF,rear:drvR}),FR('pl','Preload','Nm',{show:drvAny,front:drvF,rear:drvR})],
  p:['Clutch','Differential','Transmission']},
 {id:'body',t:'Body',f:[N('bw','Weight','kg'),N('cm','Center of mass height','game value'),N('bd','Durability','game value'),N('ar','Air resistance','game value',{neg:1}),FR('df','Downforce','kg'),N('wd','Weight distribution','%'),N('gt','Gas tank','liters')],
@@ -242,9 +249,11 @@ const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const uid=()=>Math.random().toString(36).slice(2,9);
 const num=v=>typeof v==='number'&&isFinite(v);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const pwOf=d=>(num(d.hp)&&num(d.wt)&&d.wt>0)?d.hp/(d.wt/1000):null;
+const pwOf=d=>(num(d.hp)&&num(d.wt)&&d.wt>0)?d.hp/d.wt:null;
 const topKmh=d=>num(d.top)?(d.su==='mph'?d.top*1.609344:d.top):null;
 const clsOf=t=>CLASSES.includes(t.cls)?t.cls:'C1';
+const hasDrive=d=>!!d.dr&&d.dr!=='N/A';
+const driveTxt=d=>hasDrive(d)?d.dr:'Not set';
 const radarScore=(key,val)=>{const r=RANGES[key];if(!num(val))return null;const s=clamp((val-r.min)/(r.max-r.min),0,1)*100;return r.inv?100-s:s};
 
 // ================= INPUTS =================
@@ -271,7 +280,7 @@ function fld(f,d){
  else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${numIn('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
  return`<div class="row${cls}"${ta}><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
 }
-function partRow(p,d){const f=partF(p);const v=d[f.k]||'Stock';
+function partRow(p,d){const f=partF(p);const v=d[f.k]||'N/A';
  return`<div class="row${tierCls(v)}"${tierAttr(v)}><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
 
 // ================= COMPLETION =================
@@ -281,11 +290,11 @@ function filled(s,d){
   if(f.t==='n'){t++;if(num(d[f.k]))n++}
   else if(f.t==='fr'){t+=2;if(num(d[f.k+'F']))n++;if(num(d[f.k+'R']))n++}
   else if(f.t==='x'){t++;if(d[f.k])n++}
-  else if(f.t==='s'){t++;if(d[f.k]!=null)n++}
+  else if(f.t==='s'){t++;if(d[f.k]&&d[f.k]!=='N/A')n++}
   else if(f.t==='sfr'){t+=2;if(d[f.k+'F'])n++;if(d[f.k+'R'])n++}
   else if(f.t==='g'){const k=Math.min(10,d.ng|0);t+=k;for(let i=1;i<=k;i++)if(num(d['g'+i]))n++}
  });
- (s.p||[]).forEach(p=>{t++;if(d[partF(p).k])n++});
+ (s.p||[]).forEach(p=>{t++;if(d[partF(p).k]&&d[partF(p).k]!=='N/A')n++});
  return{n,t};
 }
 function completion(d){let n=0,t=0;SEC.forEach(s=>{const b=filled(s,d);n+=b.n;t+=b.t});return t?n/t:0}
@@ -322,10 +331,10 @@ function flat(t){
   const L=s.t+' · '+f.l;
   if(f.t==='n')m.set(L,{u:f.u||'',v:t.d[f.k]});
   else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
-  else if(f.t==='s'&&f.k==='dr')m.set(s.t+' · Drive',{u:'',v:t.d.dr,text:true});
+  else if(f.t==='s'&&f.k==='dr')m.set(s.t+' · Drive',{u:'',v:hasDrive(t.d)?t.d.dr:null,text:true});
   else if(f.t==='g'){const n=Math.min(10,t.d.ng|0);const arr=[];for(let i=1;i<=n;i++)arr.push(num(t.d['g'+i])?t.d['g'+i]:null);if(arr.some(x=>x!=null))m.set(s.t+' · Gear ratios',{u:'ratio',v:arr,multi:true})}
  }));
- const pw=pwOf(t.d);if(pw!=null)m.set('Overview · Power-to-weight',{u:'hp/t',v:pw});
+ const pw=pwOf(t.d);if(pw!=null)m.set('Overview · Power-to-weight',{u:'hp/kg',v:pw});
  return m;
 }
 function compareRows(a,b){
@@ -348,12 +357,13 @@ const $=id=>document.getElementById(id),app=$('app'),tabs=$('tabs');
 const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 function loadDB(){let x;try{x=JSON.parse(ls.get('cxt'))}catch(e){x=null}
  if(!x||!Array.isArray(x.tunes))x={tunes:[]};
- x.tunes=x.tunes.map(t=>({hist:[],up:0,tags:[],cls:'C1',...t}));
+ x.tunes=x.tunes.map(t=>{const o={hist:[],up:0,tags:[],cls:'C1',...t};if(o.d)delete o.d.et;return o});
  x.recent=Array.isArray(x.recent)?x.recent:[];return x}
 let DB=loadDB();
 let cur=null,view='list',charts=[],activeSec='stats',q='',cA='',cB='',undo=null;
 let cmpStage='pick',cmpTab='Engine',cmpPending=new Set(),cmpApplied=new Set();
 let filt={sort:'recent',drive:'',cls:'',tag:''};
+let selMode=false,selSet=new Set(),pressT=null,suppress=false;
 let th=ls.get('cxth')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
 function applyTheme(){document.documentElement.dataset.theme=th;const m=document.querySelector('meta[name=theme-color]');if(m)m.content=th==='dark'?'#051F20':'#DBF0DD'}
 const find=id=>DB.tunes.find(t=>t.id===id);
@@ -399,11 +409,11 @@ function sortTunes(arr){
 }
 function tileHtml(t){
  const cls=clsOf(t),pw=pwOf(t.d),pct=completion(t.d);
- return`<div class=tile data-a=open data-id=${t.id}>
+ return`<div class="tile${selMode?' sel':''}" data-a=open data-id=${t.id}>${selMode?`<span class="tick${selSet.has(t.id)?' on':''}"></span>`:''}
   <div class=top><span class=badge style="background:${CCOL[cls]}">${cls}</span>${ringSvg(pct)}</div>
   <div class=car>${E(t.car||'No car set')}</div>
   <div class=nm>${E(t.name)}</div>
-  <div class=meta>${pw!=null?pw.toFixed(0)+' hp/t':'— hp/t'} · ${E(t.d.dr||'Drive —')} · ${E(t.d.en||'No engine')}</div>
+  <div class=meta>${pw!=null?pw.toFixed(3)+' hp/kg':'— hp/kg'} · ${E(driveTxt(t.d))} · ${E(t.d.en||'No engine')}</div>
   ${(t.tags||[]).length?`<div class=tags>${t.tags.map(x=>`<span class=tag>${x}</span>`).join('')}</div>`:''}
  </div>`}
 const activeFilters=()=>['drive','cls','tag'].filter(g=>filt[g]);
@@ -416,7 +426,7 @@ function renderList(){
  const list=sortTunes(all.filter(tuneMatches));
  const act=activeFilters();
  const nAct=act.length+(filt.sort!=='recent'?1:0);
- const sum=all.length?`${all.length} tune${all.length>1?'s':''}${bestPw?' · best '+bestPw.v.toFixed(0)+' hp/t':''}${fast?' · top '+Math.round(fast.v)+' km/h':''}`:'Add your first tune';
+ const sum=all.length?`${all.length} tune${all.length>1?'s':''}${bestPw?' · best '+bestPw.v.toFixed(3)+' hp/kg':''}${fast?' · top '+Math.round(fast.v)+' km/h':''}`:'Add your first tune';
  app.innerHTML=hdr('','Garage','',false)+`<div class=wrap>
   <div id=ptr>Pull to refresh…</div>
   <h2 class=large>Garage</h2>
@@ -430,6 +440,7 @@ function renderList(){
   <div class=acts><button class=p data-a=new>New tune</button><button data-a=compare>Compare</button><button class=ico data-a=import aria-label="Import tune" title="Import">${ICO_IMPORT}</button><button class=ico data-a=backup aria-label="Back up all tunes" title="Back up all">${ICO_BACKUP}</button></div>
   <div id=lst class=grid style="margin-top:4px">${list.length?list.map(tileHtml).join(''):`<p class=mu style="grid-column:1/-1">${all.length?'No tunes match these filters.':'No tunes yet. Tap "New tune" to start your first setup.'}</p>`}</div>
  </div>`;
+ if(selMode)app.insertAdjacentHTML('beforeend',selBarHtml());
  window.onscroll=()=>{const t=$('ttl');if(view!=='list'||!t)return;t.classList.toggle('show',scrollY>70)};
 }
 function openFilters(){
@@ -442,6 +453,16 @@ function openFilters(){
   <h3>Tag</h3><div class="chips wrapx">${chip('tag','','All')}${TAGS.map(x=>chip('tag',x,x)).join('')}</div>
   <div class=acts><button data-a=resetfilt>Reset all</button></div>`);
 }
+// Press and hold a tile to start selecting; tap others to add them
+function selBarHtml(){const n=selSet.size;return `<div class=applybar><div class=info><b>${n}</b> selected</div><button data-a=selcancel>Cancel</button><button data-a=selshare ${n?'':'disabled'}>Share</button><button class=danger data-a=seldel ${n?'':'disabled'}>Delete</button></div>`}
+document.addEventListener('pointerdown',e=>{
+ const t=e.target.closest&&e.target.closest('.tile[data-id]');
+ suppress=false;clearTimeout(pressT);
+ if(!t||view!=='list')return;
+ const id=t.dataset.id;
+ pressT=setTimeout(()=>{suppress=true;selMode=true;selSet.add(id);renderList();if(navigator.vibrate)navigator.vibrate(15)},500);
+},{passive:true});
+['pointerup','pointercancel','pointerleave','pointermove'].forEach(ev=>document.addEventListener(ev,()=>clearTimeout(pressT),{passive:true}));
 // Pull to refresh (top of the dashboard only)
 let pY=null,pDy=0;
 document.addEventListener('touchstart',e=>{if(view==='list'&&scrollY===0)pY=e.touches[0].clientY;else pY=null},{passive:true});
@@ -455,8 +476,8 @@ function summaryHtml(t){
  return `<div class=summary id=sumbox>
   <div class=stat><small>Power</small><b>${num(d.hp)?d.hp+' hp':'—'}</b></div>
   <div class=stat><small>Weight</small><b>${num(d.wt)?d.wt+' kg':'—'}</b></div>
-  <div class=stat><small>Power-to-weight</small><b>${pw!=null?pw.toFixed(0)+' hp/t':'—'}</b></div>
-  <div class=stat><small>Drive</small><b>${E(d.dr||'—')}</b></div>
+  <div class=stat><small>Power-to-weight</small><b>${pw!=null?pw.toFixed(3)+' hp/kg':'—'}</b></div>
+  <div class=stat><small>Drive</small><b>${E(driveTxt(d))}</b></div>
  </div>`}
 function tabsHtml(){
  return SEC.map(s=>`<button data-a=jump data-s=${s.id} class="${activeSec===s.id?'on':''}" aria-current="${activeSec===s.id?'true':'false'}"><i>${ICONS[s.id]}</i>${SEC_TABS[s.id]}</button>`).join('');
@@ -497,8 +518,8 @@ function renderCmp(){
  }
  if(!find(cA))cA=DB.tunes[0].id;if(!find(cB)||cB===cA)cB=DB.tunes.find(t=>t.id!==cA).id;
  const a=find(cA),b=find(cB);
- const o=DB.tunes.map(t=>`<option value=${t.id}>${E(t.name)}</option>`).join('');
- const picker=`<div class=card><div class=acts><select data-c=a aria-label="Tune A" style="flex:1">${o}</select><select data-c=b aria-label="Tune B" style="flex:1">${o}</select></div>
+ const opt=(id)=>DB.tunes.map(t=>`<option value=${t.id}${t.id===id?' selected':''}>${E(t.name)}</option>`).join('');
+ const picker=`<div class=card><div class=acts><select data-c=a aria-label="Tune A" style="flex:1">${opt(cA)}</select><select data-c=b aria-label="Tune B" style="flex:1">${opt(cB)}</select></div>
    <div class=mu style="font-size:13px"><span style="color:var(--a)">■</span> ${E(a.name)} &nbsp; <span style="color:var(--b)">■</span> ${E(b.name)}</div></div>`;
  let body='';
  if(cmpStage==='pick'){
@@ -506,14 +527,15 @@ function renderCmp(){
   const count=g=>rows.filter(r=>groupOf(r.label)===g&&cmpPending.has(r.label)).length;
   const tabsBar=`<div class=ctabs>${CMP_GROUPS.map(g=>{const n=rows.filter(r=>groupOf(r.label)===g).length;if(!n)return'';return `<button class="${cmpTab===g?'on':''}" data-a=ctab data-g="${E(g)}">${g}<b>${count(g)||''}</b></button>`}).join('')}</div>`;
   const items=rows.filter(r=>groupOf(r.label)===cmpTab);
-  body=picker+`<div class=card style="padding:6px 16px">${tabsBar}`+
+  body=picker+`<div class=cg id=statsbox></div><div class=card style="padding:6px 16px">${tabsBar}<div class=acts style="margin:4px 0 2px"><button data-a=cselall>Select all</button><button data-a=cselnone>Clear all</button></div>`+
    items.map(r=>`<label class=ck><input type=checkbox data-cm="${E(r.label)}"${cmpPending.has(r.label)?' checked':''}><span>${E(metricName(r.label))}</span></label>`).join('')+
    `</div>`;
   body+=`<div class=applybar><div class=info id=applyinfo><b>${cmpPending.size}</b> selected</div><button data-a=clearsel>Clear</button><button class=p data-a=apply ${cmpPending.size?'':'disabled'}>Apply</button></div>`;
  } else {
-  body=picker+`<div id=results class=cg></div>`;
+  body=picker+`<div class=cg id=statsbox></div><div id=results class=cg></div>`;
  }
  app.innerHTML=hdr(cmpStage==='pick'?'<button class=ghost data-a=back>‹ Garage</button>':'<button class=ghost data-a=editsel>‹ Choose</button>','Compare','',true)+`<div class=wrap>${body}</div>`;
+ drawStats($('statsbox'),a,b,palette());
  if(cmpStage==='results'){
   app.innerHTML+=`<div class=applybar><div class=info><b>${cmpApplied.size}</b> comparisons shown</div><button class=p data-a=editsel>Edit selection</button></div>`;
   drawCompare();
@@ -535,32 +557,79 @@ function card(parent,title,big){
 }
 function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[]}
 // Car overall stats: radar always shown, plus a table with lower-is-better marked
+function downloadBlob(blob,name){const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=name;document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+function roundRect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function makeSummaryPNG(list){return new Promise(res=>{
+ const W=900,pad=28,cardH=420,H=pad*2+list.length*(cardH+20);
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+ g.fillStyle='#051F20';g.fillRect(0,0,W,H);
+ const f=(sz,w)=>`${w||400} ${sz}px -apple-system,"Helvetica Neue",Arial,sans-serif`;
+ list.forEach((t,i)=>{const y=pad+i*(cardH+20);
+  g.fillStyle='#112240';roundRect(g,pad,y,W-pad*2,cardH,24);g.fill();
+  g.fillStyle='#64FFDA';g.font=f(16,700);g.fillText(clsOf(t),pad+24,y+40);
+  g.fillStyle='#CCD6F6';g.font=f(30,700);g.fillText(t.name||'Tune',pad+24,y+84);
+  g.fillStyle='#8892B0';g.font=f(20);g.fillText(t.car||'',pad+24,y+116);
+  const pw=pwOf(t.d);
+  const rows=[['Power-to-weight',pw!=null?pw.toFixed(3)+' hp/kg':'—'],['Drive',driveTxt(t.d)],['Engine',t.d.en||'—'],['Tags',(t.tags||[]).join(', ')||'—'],['Completion',Math.round(completion(t.d)*100)+'%'],['Weight',num(t.d.wt)?t.d.wt+' kg':'—'],['Power',num(t.d.hp)?t.d.hp+' hp':'—'],['Top speed',topKmh(t.d)!=null?Math.round(topKmh(t.d))+' km/h':'—'],['Acceleration (0–25, lower better)',num(t.d.acc)?String(t.d.acc):'—']];
+  rows.forEach((r,j)=>{const col=j%2,row=Math.floor(j/2);const x=pad+24+col*((W-pad*2)/2),yy=y+160+row*52;
+   g.fillStyle='#8892B0';g.font=f(16);g.fillText(r[0],x,yy);g.fillStyle='#DBF0DD';g.font=f(20,600);g.fillText(String(r[1]),x,yy+22)});
+ });
+ cv.toBlob(b=>res(b),'image/png');
+})}
+function shareSelected(){
+ const list=DB.tunes.filter(t=>selSet.has(t.id));if(!list.length)return;
+ const code=enc(list.length===1?strip(list[0]):{v:2,tunes:list.map(strip)});
+ modal(`<b>Share ${list.length} tune${list.length>1?'s':''}</b>
+  <div class=acts><button data-a=selfile>Download .json</button><button data-a=selpng>Save image summary</button></div>
+  <p class=mu>Share code (paste into Import):</p><textarea id=sc readonly>${E(code)}</textarea>
+  <div class=acts><button data-a=copy data-id=sc>Copy code</button></div>`);
+}
+function confirmDel1(){const n=selSet.size;if(!n)return;
+ modal(`<b>Delete ${n} tune${n>1?'s':''}?</b><p class=mu>You will be asked to confirm once more.</p><div class=acts><button data-a=close style="flex:1">Cancel</button><button class=danger data-a=del1 style="flex:1">Delete</button></div>`);
+}
+function confirmDel2(){const n=selSet.size;if(!n)return;
+ modal(`<b>Are you sure?</b><p class=mu>This cannot be undone. Type DELETE to confirm.</p><input id=delconf placeholder="DELETE" autocomplete=off style="width:100%;text-align:center;letter-spacing:.08em;margin:8px 0"><div class=acts><button class=danger data-a=del2 id=delbtn disabled style="flex:1">Delete ${n} tune${n>1?'s':''}</button></div>`);
+}
+function doDelete(){
+ const items=DB.tunes.map((t,i)=>({t,idx:i})).filter(x=>selSet.has(x.t.id));
+ if(!items.length)return;
+ DB.tunes=DB.tunes.filter(t=>!selSet.has(t.id));
+ DB.recent=DB.recent.filter(x=>!selSet.has(x));
+ save();undo={items};
+ selMode=false;selSet.clear();
+ const m=$('md');if(m)m.remove();
+ toast(`${items.length} tune${items.length>1?'s':''} deleted`,{a:'undo',l:'Undo'});
+ renderList();
+}
 function drawStats(box,a,b,p){
+ if(!box)return;
  const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc)];
  const va=ax(a),vb=ax(b);
- const cv=card(box,'Car overall stats · radar (fixed scale)',true);
+ const wrap=document.createElement('div');wrap.className='cc glass';
+ wrap.innerHTML='<h4>Car overall stats · fixed scale (0–100)</h4>';
+ const cwrap=document.createElement('div');cwrap.className='wrapc big';const cv=document.createElement('canvas');cwrap.append(cv);wrap.append(cwrap);
  charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (light = high)','Power','Top speed','Acceleration (lower time = high)'],datasets:[
   {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
   {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,borderDash:[6,4],backgroundColor:p.b+'26',pointBackgroundColor:p.b,spanGaps:true}]},
   options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
- const rowsDef=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true]];
- const cell=(t,key)=>{const v=key==='top'?topKmh(t.d):t.d[key];return num(v)?v:null};
+ const defs=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true]];
+ const val=(t,key)=>{const v=key==='top'?topKmh(t.d):t.d[key];return num(v)?v:null};
+ const score=(t,key)=>{const r=radarScore(key,val(t,key));return r==null?'':' <small>('+Math.round(r)+')</small>'};
  let html='<table class=cmp><tr><th>Stat</th><th>'+E(a.name)+'</th><th>'+E(b.name)+'</th></tr>';
- rowsDef.forEach(([name,key,unit,lowerBetter])=>{
-  const va2=cell(a,key),vb2=cell(b,key);
-  let ba='',bb='';
-  if(num(va2)&&num(vb2)&&va2!==vb2){const aBetter=lowerBetter?va2<vb2:va2>vb2;ba=aBetter?' class=best':'';bb=aBetter?'':' class=best'}
-  html+=`<tr><td>${name}${lowerBetter?' <small>(lower better)</small>':''}</td><td${ba}>${num(va2)?va2+(unit?' '+unit:''):'—'}</td><td${bb}>${num(vb2)?vb2+(unit?' '+unit:''):'—'}</td></tr>`;
+ defs.forEach(([name,key,unit,lb])=>{
+  const x=val(a,key),y=val(b,key);let ca='',cb='';
+  if(x!=null&&y!=null&&x!==y){const aBetter=lb?x<y:x>y;ca=aBetter?' class=best':'';cb=aBetter?'':' class=best'}
+  html+=`<tr><td>${name}${lb?' <small>(lower better)</small>':''}</td><td${ca}>${x!=null?x+(unit?' '+unit:'')+score(a,key):'—'}</td><td${cb}>${y!=null?y+(unit?' '+unit:'')+score(b,key):'—'}</td></tr>`;
  });
  html+='</table>';
- const d=document.createElement('div');d.className='cc glass';d.innerHTML=`<h4>Car overall stats · values</h4>${html}`;box.append(d);
+ const tb=document.createElement('div');tb.innerHTML=html;wrap.append(tb);
+ box.append(wrap);
 }
 function drawCompare(){
  const a=find(cA),b=find(cB);if(!a||!b)return;
  const box=$('results');if(!box)return;
  box.innerHTML='';
  const p=palette();
- drawStats(box,a,b,p);
  const rows=compareRows(a,b);
  const byLabel=new Map(rows.map(r=>[r.label,r]));
  const sel=[...cmpApplied].filter(l=>byLabel.has(l));
@@ -639,6 +708,7 @@ function addTunes(a){
 }
 document.addEventListener('input',e=>{
  const el=e.target;
+ if(el.id==='delconf'){const b=$('delbtn');if(b)b.disabled=el.value!=='DELETE';return}
  if(el.id==='q'){q=el.value;renderList();const i=$('q');if(i){i.focus();i.setSelectionRange(q.length,q.length)}return}
  if(!cur)return;
  if(el.dataset.r){
@@ -677,11 +747,22 @@ document.addEventListener('toggle',e=>{
  if(s&&e.target.open&&view==='edit')setActive(s);
 },true);
 document.addEventListener('click',e=>{
+ if(suppress){suppress=false;e.preventDefault();return}
  const b=e.target.closest('[data-a]');if(!b)return;
  const a=b.dataset.a,id=b.dataset.id;
  if(a==='theme'){th=th==='dark'?'light':'dark';ls.set('cxth',th);applyTheme();view==='edit'?renderEdit():view==='cmp'?renderCmp():renderList()}
  else if(a==='new'){cur={id:uid(),name:'New tune',car:'',cls:'C1',tags:[],d:{},up:Date.now(),hist:[]};DB.tunes.unshift(cur);touchRecent(cur.id);save();activeSec='stats';renderEdit();const n=document.querySelector('[data-r=name]');if(n){n.focus();n.select()}}
- else if(a==='open'){cur=find(id);if(cur){touchRecent(id);save();activeSec='stats';renderEdit()}}
+ else if(a==='open'){
+  if(selMode){if(selSet.has(id))selSet.delete(id);else selSet.add(id);renderList();return}
+  cur=find(id);if(cur){touchRecent(id);save();activeSec='stats';renderEdit()}}
+ else if(a==='selcancel'){selMode=false;selSet.clear();renderList()}
+ else if(a==='selshare')shareSelected();
+ else if(a==='selfile'){const list=DB.tunes.filter(t=>selSet.has(t.id));downloadBlob(new Blob([JSON.stringify({v:2,tunes:list.map(strip)})],{type:'application/json'}),'carx-tunes-'+new Date().toISOString().slice(0,10)+'.json')}
+ else if(a==='selpng'){const list=DB.tunes.filter(t=>selSet.has(t.id));makeSummaryPNG(list).then(b=>downloadBlob(b,'carx-tunes-summary.png'))}
+ else if(a==='seldel')confirmDel1();
+ else if(a==='del1')confirmDel2();
+ else if(a==='del2')doDelete();
+ else if(a==='cselall'||a==='cselnone'){const rows=compareRows(find(cA),find(cB)).filter(r=>groupOf(r.label)===cmpTab);rows.forEach(r=>a==='cselall'?cmpPending.add(r.label):cmpPending.delete(r.label));renderCmp()}
  else if(a==='back'){cur=null;renderList()}
  else if(a==='jump'){setActive(b.dataset.s);const det=$('sec-'+b.dataset.s);if(det)det.scrollIntoView({behavior:'smooth',block:'start'})}
  else if(a==='openfilters')openFilters();
@@ -690,10 +771,7 @@ document.addEventListener('click',e=>{
  else if(a==='resetfilt'){filt={sort:'recent',drive:'',cls:'',tag:''};renderList();const m=$('md');if(m&&m.innerHTML)openFilters()}
  else if(a==='tag'){snapshot(cur);const x=b.dataset.tag;cur.tags=cur.tags||[];cur.tags=cur.tags.includes(x)?cur.tags.filter(t=>t!==x):[...cur.tags,x];cur.up=Date.now();save();renderEdit()}
  else if(a==='dup'){const t=find(id),c=JSON.parse(JSON.stringify(t));c.id=uid();c.name+=' (copy)';c.hist=[];c.up=Date.now();DB.tunes.unshift(c);save();renderList()}
- else if(a==='del'){const t=find(id);if(!confirm(`Delete "${t.name}"? This cannot be undone.`))return;
-  const idx=DB.tunes.indexOf(t);DB.tunes.splice(idx,1);DB.recent=DB.recent.filter(x=>x!==id);save();
-  undo={t,idx};toast('Tune deleted',{a:'undo',l:'Undo'});renderList()}
- else if(a==='undo'){if(undo){DB.tunes.splice(Math.min(undo.idx,DB.tunes.length),0,undo.t);save();undo=null;toast('Restored');renderList()}}
+ else if(a==='undo'){if(undo){[...undo.items].sort((x,y)=>x.idx-y.idx).forEach(it=>DB.tunes.splice(Math.min(it.idx,DB.tunes.length),0,it.t));save();undo=null;toast('Restored');renderList()}}
  else if(a==='prune'){DB.tunes.forEach(t=>{t.hist=(t.hist||[]).slice(0,3)});save();toast('Old snapshots cleared')}
  else if(a==='compare'){cmpStage='pick';renderCmp()}
  else if(a==='ctab'){cmpTab=b.dataset.g;renderCmp()}
@@ -703,7 +781,7 @@ document.addEventListener('click',e=>{
  else if(a==='close'){const m=$('md');if(m)m.remove()}
  else if(a==='history'){
   const hs=cur.hist||[];
-  modal(`<b>Setup history</b><p class=mu style="font-size:13px">Saved automatically about every 10 minutes while you edit. Restoring first saves the current version, so you can undo a restore.</p>${hs.length?hs.map((h,i)=>`<div class=hist><div><b>${new Date(h.t).toLocaleString()}</b><br><small>${E(h.name)} · ${E(h.car)} · ${E(h.cls||'')} · ${pwOf(h.d)!=null?pwOf(h.d).toFixed(0)+' hp/t':'no power data'}</small></div><button data-a=restore data-i=${i}>Restore</button></div>`).join(''):'<p class=mu>No snapshots yet. Make a change and they will appear here.</p>'}`);
+  modal(`<b>Setup history</b><p class=mu style="font-size:13px">Saved automatically about every 10 minutes while you edit. Restoring first saves the current version, so you can undo a restore.</p>${hs.length?hs.map((h,i)=>`<div class=hist><div><b>${new Date(h.t).toLocaleString()}</b><br><small>${E(h.name)} · ${E(h.car)} · ${E(h.cls||'')} · ${pwOf(h.d)!=null?pwOf(h.d).toFixed(3)+' hp/kg':'no power data'}</small></div><button data-a=restore data-i=${i}>Restore</button></div>`).join(''):'<p class=mu>No snapshots yet. Make a change and they will appear here.</p>'}`);
  }
  else if(a==='restore'){const h=(cur.hist||[])[+b.dataset.i];if(!h)return;
   snapshot(cur,true);
