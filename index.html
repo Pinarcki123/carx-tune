@@ -148,6 +148,15 @@ textarea{width:100%;min-height:90px;font:12px ui-monospace,monospace}
 #toast.on{opacity:1;transform:translateX(-50%)}
 #toast button{pointer-events:auto}
 /* compare */
+.tabbar:empty{display:none!important}
+.gicon{width:44px;min-width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;border-color:transparent;color:var(--acc)}
+.gicon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tile.recent{aspect-ratio:auto;min-height:0;padding:12px 14px;justify-content:center;gap:4px}
+.hrow .tile.recent{flex:0 0 200px;min-height:84px}
+.tile.recent .car,.tile.recent .nm{white-space:normal;overflow:visible}
+#signpad{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));z-index:45;display:none;gap:12px;padding:8px;border-radius:999px}
+#signpad.show{display:flex}
+#signpad button{min-width:64px;min-height:52px;font-size:24px;font-weight:600;border-radius:999px}
 .ctabs{display:flex;gap:6px;overflow-x:auto;padding:4px;margin-bottom:12px;scrollbar-width:none;border-radius:18px}
 .ctabs::-webkit-scrollbar{display:none}
 .ctabs button{flex:0 0 auto;border-radius:14px;background:transparent;border:0;min-height:38px;padding:6px 12px;font-size:14px;color:var(--mu)}
@@ -191,6 +200,7 @@ button.danger{color:#ff6b6b}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
 <nav class="tabbar glass" id="tabs"></nav>
+<div id="signpad" class="glass"><button data-sign="-" aria-label="Negative">−</button><button data-sign="+" aria-label="Positive">+</button></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 // ================= CONSTANTS =================
@@ -204,7 +214,7 @@ const TAGS=['drift','drag','grip','circuit'];
 const SNAP_GAP=10*60*1000, SNAP_MAX=20;
 // Fixed radar ranges (edit here). inv=true means a lower value scores higher.
 // Acceleration is an unknown game value between 0 and 25; lower is better.
-const RANGES={wt:{min:750,max:2500,inv:true},hp:{min:90,max:1800},top:{min:115,max:500},acc:{min:0,max:25,inv:true}};
+const RANGES={wt:{min:750,max:2500,inv:false},hp:{min:90,max:1800},top:{min:115,max:500},acc:{min:0,max:25,inv:true},gs:{min:0.2,max:0.5,inv:true}};
 const ICONS={
  stats:'<svg viewBox="0 0 24 24"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 14l4-4.5"/><circle cx="12" cy="14" r="1.2"/></svg>',
  eng:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>',
@@ -215,6 +225,7 @@ const ICONS={
 };
 const ICO_IMPORT='<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg>';
 const ICO_BACKUP='<svg viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 10a4 4 0 0 1 .5 8H7z"/><path d="M12 17v-6M9.5 13.5L12 11l2.5 2.5"/></svg>';
+const ICO_HOME='<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>';
 const SEC_TABS={stats:'Stats',eng:'Engine',drive:'Drive',body:'Body',susp:'Susp',whl:'Wheels'};
 
 // ================= FIELDS =================
@@ -230,7 +241,7 @@ const drvF=d=>elite(d)&&['AWD','FWD'].includes(d.dr);
 const drvR=d=>elite(d)&&['AWD','RWD'].includes(d.dr);
 const drvAny=d=>drvF(d)||drvR(d);
 const SEC=[
-{id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['km/h','mph']),N('acc','Acceleration','value'),N('nos','Nitrous charge','game value')]},
+{id:'stats',t:'Car overall stats',f:[N('wt','Weight','kg'),N('hp','Power','hp'),N('top','Top speed','speed'),S('su','Speed unit',['N/A','km/h','mph']),N('acc','Acceleration','value'),N('nos','Nitrous charge','game value')]},
 {id:'eng',t:'Engine',f:[X('en','Engine name'),N('ew','Weight','kg'),N('ed','Durability','game value'),N('tl','Torque low','Nm'),N('tm','Torque medium','Nm'),N('th','Torque high','Nm'),N('rev','Rev limiter','RPM'),S('tb','Turbine',['No','Yes']),N('tp','Turbine pressure','bar',{show:d=>d.tb==='Yes'}),N('pk','Peak RPM','RPM'),N('ei','Engine inertia ratio','game value')],
  p:['ECU','Turbo kit','Camshaft','Intake manifold','Nitro','Fuel system','Cylinder head','Engine block','Exhaust manifold','Exhaust']},
 {id:'drive',t:'Drivetrain',f:[X('tn','Transmission name'),S('tt2','Transmission tier',T),N('dw','Weight','kg'),N('dd','Durability','game value'),S('dr','Drive',['N/A','AWD','RWD','FWD']),N('dl','Drivetrain loss','%'),N('gs','Gear shifting speed','s'),N('ng','Number of gears','',{int:1}),N('fd','Final drive','game value'),{k:'g',t:'g',l:'Gear ratios'},N('lk','Differential locking','%'),
@@ -273,6 +284,8 @@ const radarScore=(key,val)=>{const r=RANGES[key];if(!num(val))return null;const 
 // ================= INPUTS =================
 const tierAttr=v=>TIERC[v]?` style="--tierc:${TIERC[v]}"`:'';
 const tierCls=v=>TIERC[v]?' tier':'';
+const TIRE={'Street':'#8e8e93','Street+':'#8e8e93','Sport':'#34c759','Sport+':'#34c759','Racing':'#bf5af2','Racing+':'#bf5af2'};
+const colourFor=(k,v)=>k==='tt'?(TIRE[v]||null):(TIERC[v]||null);
 const numIn=(k,v,neg)=>neg
  ?`<input type=text inputmode=decimal pattern="-?[0-9]*[.]?[0-9]*" data-k="${k}" data-neg=1 value="${E(v??'')}" placeholder="—">`
  :`<input type=number step=any inputmode=decimal min=0 data-k="${k}" value="${E(v??'')}" placeholder="—">`;
@@ -288,7 +301,7 @@ function fld(f,d){
   if(!c)return'';
   c+=u;
  }
- else if(f.t==='s'){c=selIn(f.k,f.o,d[f.k])+u;if(f.o===T){cls=tierCls(d[f.k]);ta=tierAttr(d[f.k])}}
+ else if(f.t==='s'){c=selIn(f.k,f.o,d[f.k])+u;if(f.o===T){cls=tierCls(d[f.k]);ta=tierAttr(d[f.k])}else if(f.k==='tt'){const col=colourFor('tt',d.tt);cls=col?' tier':'';ta=col?` style="--tierc:${col}"`:''}}
  else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
  else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}" style="width:100%;text-align:left">`;
  else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));cls=' gearrow';c=n?`<div class=gears>${Array.from({length:n},(_,i)=>`<div class=gc><small>Gear ${i+1}</small>${numIn('g'+(i+1),d['g'+(i+1)])}</div>`).join('')}</div>`:'<small>Set number of gears first</small>'}
@@ -302,7 +315,7 @@ function filled(s,d){
  let n=0,t=0;
  s.f.forEach(f=>{if(f.show&&!f.show(d))return;
   if(f.t==='n'){t++;if(num(d[f.k]))n++}
-  else if(f.t==='fr'){t+=2;if(num(d[f.k+'F']))n++;if(num(d[f.k+'R']))n++}
+  else if(f.t==='fr'){const fo=f.front?f.front(d):true,ro=f.rear?f.rear(d):true;if(fo){t++;if(num(d[f.k+'F']))n++}if(ro){t++;if(num(d[f.k+'R']))n++}}
   else if(f.t==='x'){t++;if(d[f.k])n++}
   else if(f.t==='s'){t++;if(d[f.k]&&d[f.k]!=='N/A')n++}
   else if(f.t==='sfr'){t+=2;if(d[f.k+'F'])n++;if(d[f.k+'R'])n++}
@@ -342,6 +355,7 @@ function flat(t){
  const m=new Map();
  SEC.forEach(s=>s.f.forEach(f=>{
   if(f.show&&!f.show(t.d))return;
+  if(f.k==='gs')return;
   const L=s.t+' · '+f.l;
   if(f.t==='n')m.set(L,{u:f.u||'',v:t.d[f.k]});
   else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
@@ -417,19 +431,35 @@ function snapshot(t,force){
 function touchRecent(id){DB.recent=[id,...DB.recent.filter(x=>x!==id)].slice(0,3)}
 function toast(m,action){const t=$('toast');t.innerHTML=E(m)+(action?` <button class=ghost data-a=${action.a} style="min-height:auto;padding:0 0 0 8px;pointer-events:auto">${action.l}</button>`:'');t.className='on';clearTimeout(toast.h);toast.h=setTimeout(()=>t.className='',action?5000:2200)}
 function modal(h){let m=$('md');if(!m){m=document.createElement('div');m.id='md';document.body.append(m)}m.innerHTML=`<div class="sheet glass">${h}<div class=acts><button data-a=close style="flex:1">Done</button></div></div>`}
-const hdr=(left,title,right='',always=false)=>`<header>${left}<h1 id=ttl class="${always?'always':''}">${E(title)}</h1><span id=saved class=saved></span>${right}<button class=ghost data-a=theme>${th==='dark'?'Light':'Dark'}</button></header>`;
+const hdr=(left,title,right='',always=false)=>`<header>${left}<button class=gicon data-a=back aria-label="Go to Garage" title="Garage">${ICO_HOME}</button><h1 id=ttl class="${always?'always':''}">${E(title)}</h1><span id=saved class=saved></span>${right}<button class=ghost data-a=theme>${th==='dark'?'Light':'Dark'}</button></header>`;
 
 // ================= DASHBOARD =================
 function tuneMatches(t){
- if(q){const ql=q.toLowerCase();const hay=[t.name,t.car,t.cls,...t.tags,...Object.keys(t.d).filter(k=>k.startsWith('p:')&&t.d[k]!=='Stock').map(k=>t.d[k]),t.d.en||'',t.d.tn||'',t.d.dr||''].join(' ').toLowerCase();if(!hay.includes(ql))return false}
+ if(q&&!fuzzyHit(t,q))return false;
  if(filt.drive&&t.d.dr!==filt.drive)return false;
  if(filt.cls&&clsOf(t)!==filt.cls)return false;
  if(filt.tag&&!(t.tags||[]).includes(filt.tag))return false;
  return true;
 }
+function lev(a,b){const m=a.length,n=b.length;let prev=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur}return prev[n]}
+function fuzzyHit(t,query){
+ const words=[t.name,t.car,t.cls,...(t.tags||[]),t.d.dr&&t.d.dr!=='N/A'?t.d.dr:'',t.d.en||'',t.d.tn||''];
+ // part names, but never the tier word itself
+ Object.keys(t.d).forEach(k=>{if(k.startsWith('p:')&&t.d[k]&&t.d[k]!=='N/A')words.push(k.slice(2))});
+ const text=words.filter(Boolean).join(' ').toLowerCase().replace(/[^a-z0-9+ ]+/g,' ');
+ const toks=text.split(/\s+/).filter(Boolean);
+ return query.toLowerCase().split(/\s+/).filter(Boolean).every(term=>{
+  if(/^\d+(\.\d+)?$/.test(term))return false; // numbers are values, not search terms
+  if(text.includes(term))return true;
+  const tol=term.length>5?2:(term.length>3?1:0);
+  return toks.some(w=>w.startsWith(term)||lev(w.slice(0,term.length+1),term)<=tol)
+ });
+}
 function sortTunes(arr){
  const a=[...arr];
  if(filt.sort==='pw')a.sort((x,y)=>(pwOf(y.d)??-1)-(pwOf(x.d)??-1));
+ else if(filt.sort==='top')a.sort((x,y)=>(topKmh(y.d)??-1)-(topKmh(x.d)??-1));
+ else if(filt.sort==='acc')a.sort((x,y)=>(num(x.d.acc)?x.d.acc:1e9)-(num(y.d.acc)?y.d.acc:1e9));
  else if(filt.sort==='class')a.sort((x,y)=>CLASSES.indexOf(clsOf(x))-CLASSES.indexOf(clsOf(y)));
  else a.sort((x,y)=>(y.up||0)-(x.up||0));
  return a;
@@ -443,6 +473,7 @@ function tileHtml(t){
   <div class=meta>${pw!=null?pw.toFixed(3)+' hp/kg':'— hp/kg'} · ${E(driveTxt(t.d))} · ${E(t.d.en||'No engine')}</div>
   ${(t.tags||[]).length?`<div class=tags>${t.tags.map(x=>`<span class=tag>${x}</span>`).join('')}</div>`:''}
  </div>`}
+function recentHtml(t){return`<div class="tile recent" data-a=open data-id=${t.id}><span class=badge style="background:${CCOL[clsOf(t)]};align-self:flex-start">${clsOf(t)}</span><div class=car>${E(t.car||'No car set')}</div><div class=nm>${E(t.name)}</div></div>`}
 const activeFilters=()=>['drive','cls','tag'].filter(g=>filt[g]);
 function renderList(){
  destroyCharts();view='list';tabs.innerHTML='';document.body.classList.remove('hasbar');
@@ -463,7 +494,7 @@ function renderList(){
   </div>
   <div class=sumline>${E(sum)}</div>
   ${act.length?`<div class=active>${act.map(g=>`<button class="chip on" data-a=unfilter data-g=${g}>${E(filt[g])} ×</button>`).join('')}<button class=chip data-a=resetfilt>Clear all</button></div>`:''}
-  ${recent.length&&!q&&!act.length?`<h3>Recent</h3><div class=hrow>${recent.map(tileHtml).join('')}</div>`:''}
+  ${recent.length&&!q&&!act.length?`<h3>Recent</h3><div class=hrow>${recent.map(recentHtml).join('')}</div>`:''}
   <div class=acts><button class=p data-a=new>New tune</button><button data-a=compare>Compare</button><button class=ico data-a=import aria-label="Import tune" title="Import">${ICO_IMPORT}</button><button class=ico data-a=backup aria-label="Back up all tunes" title="Back up all">${ICO_BACKUP}</button></div>
   <div id=lst class=grid style="margin-top:4px">${list.length?list.map(tileHtml).join(''):`<p class=mu style="grid-column:1/-1">${all.length?'No tunes match these filters.':'No tunes yet. Tap "New tune" to start your first setup.'}</p>`}</div>
  </div>`;
@@ -474,7 +505,7 @@ function openFilters(){
  const chip=(grp,val,label)=>`<button class="chip ${filt[grp]===val?'on':''}" data-a=filter data-g=${grp} data-v="${E(val)}">${E(label)}</button>`;
  const n=DB.tunes.filter(tuneMatches).length;
  modal(`<b style="font-size:17px">Filters & sort</b><p class=mu style="font-size:13px;margin:4px 0 0">${n} of ${DB.tunes.length} tunes shown</p>
-  <h3>Sort</h3><div class="chips wrapx">${chip('sort','recent','Recent')}${chip('sort','pw','Power-to-weight')}${chip('sort','class','Class')}</div>
+  <h3>Sort</h3><div class="chips wrapx">${chip('sort','recent','Recent')}${chip('sort','pw','Power-to-weight (highest first)')}${chip('sort','top','Top speed (highest first)')}${chip('sort','acc','Acceleration (fastest first)')}${chip('sort','class','Class (C1 to CS+)')}</div>
   <h3>Drive</h3><div class="chips wrapx">${chip('drive','','All')}${['AWD','RWD','FWD'].map(v=>chip('drive',v,v)).join('')}</div>
   <h3>Class</h3><div class="chips wrapx">${chip('cls','','All')}${CLASSES.map(c=>chip('cls',c,c)).join('')}</div>
   <h3>Tag</h3><div class="chips wrapx">${chip('tag','','All')}${TAGS.map(x=>chip('tag',x,x)).join('')}</div>
@@ -630,18 +661,18 @@ function doDelete(){
 }
 function drawStats(box,a,b,p){
  if(!box)return;
- const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc)];
+ const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc),radarScore('gs',t.d.gs)];
  const va=ax(a),vb=ax(b);
  const wrap=document.createElement('div');wrap.className='cc glass';
  wrap.innerHTML='<h4>Car overall stats</h4>';
  const cwrap=document.createElement('div');cwrap.className='wrapc big';const cv=document.createElement('canvas');cwrap.append(cv);wrap.append(cwrap);
- charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight','Power','Top speed','Acceleration'],datasets:[
+ charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (lower = better)','Power','Top speed','Acceleration','Gear shift (lower = better)'],datasets:[
   {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
   {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,borderDash:[6,4],backgroundColor:p.b+'26',pointBackgroundColor:p.b,spanGaps:true}]},
   options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
- const defs=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true]];
+ const defs=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true],['Gear shift','gs','s',true]];
  const val=(t,key)=>{const v=key==='top'?topKmh(t.d):t.d[key];return num(v)?v:null};
- const score=(t,key)=>{const r=radarScore(key,val(t,key));return r==null?'':' <small>('+Math.round(r)+')</small>'};
+ const score=(t,key)=>{if(key==='wt')return '';const r=radarScore(key,val(t,key));return r==null?'':' <small>('+Math.round(r)+')</small>'};
  let html='<table class=cmp><tr><th>Stat</th><th>'+E(a.name)+'</th><th>'+E(b.name)+'</th></tr>';
  defs.forEach(([name,key,unit,lb])=>{
   const x=val(a,key),y=val(b,key);let ca='',cb='';
@@ -819,11 +850,25 @@ document.addEventListener('change',e=>{
  if(el.dataset.r)return;
  if(!el.dataset.k)return;
  snapshot(cur);setv(el);
- if(el.tagName==='SELECT'||el.dataset.int){const sc=scrollY;renderEdit();scrollTo(0,sc)}
+ if(el.dataset.int||['dr','po','pf'].includes(el.dataset.k)){const sc=scrollY;renderEdit();scrollTo(0,sc)}
+ else if(el.tagName==='SELECT'){const r=el.closest('.row');if(r){const col=colourFor(el.dataset.k,el.value);r.classList.toggle('tier',!!col);r.style.setProperty('--tierc',col||'')}}
  else{const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur)}
 });
+let signTarget=null;
+function showPad(el){signTarget=el;const p=$('signpad');if(p)p.classList.add('show')}
+function hidePad(){signTarget=null;const p=$('signpad');if(p)p.classList.remove('show')}
+document.addEventListener('focusin',e=>{if(e.target.dataset&&e.target.dataset.neg)showPad(e.target)});
+document.addEventListener('pointerdown',e=>{
+ const b=e.target.closest&&e.target.closest('[data-sign]');if(!b)return;
+ e.preventDefault();if(!signTarget)return;
+ let v=signTarget.value.replace(/^\+/,'');
+ if(b.dataset.sign==='-'){if(!v.startsWith('-'))v='-'+v}
+ else v=v.replace(/^-/,'');
+ signTarget.value=v;signTarget.dispatchEvent(new Event('input',{bubbles:true}));
+},{passive:false});
 document.addEventListener('focusout',e=>{
  const el=e.target;
+ if(el.dataset&&el.dataset.neg)setTimeout(()=>{const a=document.activeElement;if(!(a&&a.dataset&&a.dataset.neg))hidePad()},200);
  if(el.dataset&&el.dataset.neg&&cur&&(el.value==='-'||el.value==='.'||el.value==='-.')){el.value='';setv(el)}
 });
 document.addEventListener('keydown',e=>{
