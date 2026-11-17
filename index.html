@@ -162,7 +162,7 @@ textarea{width:100%;min-height:90px;font:12px ui-monospace,monospace}
 .applybar .info b{color:var(--tx)}
 .cc{padding:14px}
 .cc h4{margin:0 0 8px;font-size:13px;font-weight:600;color:var(--mu)}
-.wrapc{position:relative;height:220px}.wrapc.big{height:280px}
+.wrapc{position:relative;height:220px}.wrapc.big{height:360px}
 .cg{display:flex;flex-direction:column;gap:12px}
 table.cmp{width:100%;border-collapse:collapse;font-size:14px}
 table.cmp td,table.cmp th{padding:9px 6px;border-top:.5px solid var(--glassBd);text-align:right;font-variant-numeric:tabular-nums}
@@ -204,7 +204,7 @@ const TAGS=['drift','drag','grip','circuit'];
 const SNAP_GAP=10*60*1000, SNAP_MAX=20;
 // Fixed radar ranges (edit here). inv=true means a lower value scores higher.
 // Acceleration is an unknown game value between 0 and 25; lower is better.
-const RANGES={wt:{min:0,max:10000,inv:true},hp:{min:0,max:3000},top:{min:0,max:500},acc:{min:0,max:25,inv:true}};
+const RANGES={wt:{min:750,max:2500,inv:true},hp:{min:90,max:1800},top:{min:115,max:500},acc:{min:0,max:25,inv:true}};
 const ICONS={
  stats:'<svg viewBox="0 0 24 24"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 14l4-4.5"/><circle cx="12" cy="14" r="1.2"/></svg>',
  eng:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>',
@@ -564,7 +564,7 @@ function renderCmp(){
  app.innerHTML=hdr(cmpStage==='pick'?'<button class=ghost data-a=back>‹ Garage</button>':'<button class=ghost data-a=editsel>‹ Choose</button>','Compare','',true)+`<div class=wrap>${body}</div>`;
  drawStats($('statsbox'),a,b,palette());
  if(cmpStage==='results'){
-  app.innerHTML+=`<div class=applybar><div class=info><b>${cmpApplied.size}</b> comparisons shown</div><button class=p data-a=editsel>Edit selection</button></div>`;
+  app.insertAdjacentHTML('beforeend',`<div class=applybar><div class=info><b>${cmpApplied.size}</b> comparisons shown</div><button class=p data-a=editsel>Edit selection</button></div>`);
   drawCompare();
  }
 }
@@ -633,9 +633,9 @@ function drawStats(box,a,b,p){
  const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc)];
  const va=ax(a),vb=ax(b);
  const wrap=document.createElement('div');wrap.className='cc glass';
- wrap.innerHTML='<h4>Car overall stats · fixed scale (0–100)</h4>';
+ wrap.innerHTML='<h4>Car overall stats</h4>';
  const cwrap=document.createElement('div');cwrap.className='wrapc big';const cv=document.createElement('canvas');cwrap.append(cv);wrap.append(cwrap);
- charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (light = high)','Power','Top speed','Acceleration (lower time = high)'],datasets:[
+ charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight','Power','Top speed','Acceleration'],datasets:[
   {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
   {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,borderDash:[6,4],backgroundColor:p.b+'26',pointBackgroundColor:p.b,spanGaps:true}]},
   options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
@@ -649,6 +649,7 @@ function drawStats(box,a,b,p){
   html+=`<tr><td>${name}${lb?' <small>(lower better)</small>':''}</td><td${ca}>${x!=null?x+(unit?' '+unit:'')+score(a,key):'—'}</td><td${cb}>${y!=null?y+(unit?' '+unit:'')+score(b,key):'—'}</td></tr>`;
  });
  html+='</table>';
+ const note=document.createElement('p');note.className='mu';note.style.cssText='font-size:12px;margin:8px 0 12px';note.textContent='Scale: weight 750–2,500 kg (lighter = higher), power 90–1,800 hp, top speed 115–500 km/h, acceleration 0–25 (lower time = higher). Values outside a range are capped at the edge.';wrap.append(note);
  const tb=document.createElement('div');tb.innerHTML=html;wrap.append(tb);
  box.append(wrap);
 }
@@ -677,7 +678,7 @@ function drawCompare(){
   charts.push(new Chart(cv,{type:'line',data:{labels:['Low','Medium','High'],datasets:[
    {label:a.name,data:val('a'),borderColor:p.a,backgroundColor:p.a,tension:.35,spanGaps:true,pointRadius:5},
    {label:b.name,data:val('b'),borderColor:p.b,backgroundColor:p.b,tension:.35,spanGaps:true,pointRadius:5}]},
-   options:baseOpts(p,true)}));
+   options:{...baseOpts(p,true),scales:{y:{beginAtZero:true}}}}));
   torq.forEach(l=>used.add(l));
  }
  // Gear ratios: ONE graph, all gears, Tune B overlaid on Tune A
@@ -693,6 +694,68 @@ function drawCompare(){
    options:baseOpts(p,true)}));
   used.add('Drivetrain · Gear ratios');
  }
+
+ // ---- Combined charts (one chart per group, all selected items together) ----
+ const val=l=>{const r=byLabel.get(l);return r?{a:r.a,b:r.b}:{a:null,b:null}};
+ const hasAny=arr=>arr.some(m=>sel.includes(m));
+ const numSum=arr=>arr.filter(num).reduce((x,y)=>x+y,0);
+ // Damper curve: slow/fast bump and rebound as lines; front solid, rear dashed
+ const DAMP=[['Damper slow bump','Slow bump'],['Damper fast bump','Fast bump'],['Damper slow rebound','Slow rebound'],['Damper fast rebound','Fast rebound']];
+ const dampMem=DAMP.flatMap(([k])=>['Suspension · '+k+' F','Suspension · '+k+' R']);
+ if(hasAny(dampMem)){
+  const cv=card(box,'Damper curve',true);
+  const series=(side,t)=>DAMP.map(([k])=>{const v=val('Suspension · '+k+' '+side);return t==='a'?v.a:v.b});
+  const ln=(label,data,col,dash)=>({label,data,borderColor:col,borderDash:dash||[],backgroundColor:col,tension:.3,spanGaps:true,pointRadius:4});
+  charts.push(new Chart(cv,{type:'line',data:{labels:DAMP.map(d=>d[1]),datasets:[
+   ln(a.name+' front',series('F','a'),p.a),ln(a.name+' rear',series('R','a'),p.a,[4,4]),
+   ln(b.name+' front',series('F','b'),p.b),ln(b.name+' rear',series('R','b'),p.b,[4,4])]},
+   options:{...baseOpts(p,true),scales:{y:{beginAtZero:true}}}}));
+  dampMem.forEach(m=>used.add(m));
+ }
+ // Suspension balance: one front chart and one rear chart
+ const SUSP=[['Spring height'],['Spring stiffness'],['Stabilizer stiffness'],['Camber']];
+ ['F','R'].forEach(side=>{
+  const mem=SUSP.map(([n])=>'Suspension · '+n+' '+side);
+  if(!hasAny(mem))return;
+  const cv=card(box,`Suspension balance · ${side==='F'?'front':'rear'}`,false);
+  charts.push(new Chart(cv,{type:'bar',data:{labels:SUSP.map(x=>x[0]),datasets:[
+   {label:a.name,data:mem.map(m=>val(m).a),backgroundColor:p.a,borderRadius:6,maxBarThickness:36},
+   {label:b.name,data:mem.map(m=>val(m).b),backgroundColor:p.b,borderRadius:6,maxBarThickness:36}]},
+   options:{...baseOpts(p,true),indexAxis:'y'}}));
+  mem.forEach(m=>used.add(m));
+ });
+ // Rev profile: rev limiter and peak RPM together
+ const REV=['Engine · Rev limiter','Engine · Peak RPM'];
+ if(hasAny(REV)){
+  const mem=REV.filter(m=>sel.includes(m));
+  const cv=card(box,'Rev profile · RPM',false);
+  charts.push(new Chart(cv,{type:'bar',data:{labels:mem.map(m=>metricName(m)),datasets:[
+   {label:a.name,data:mem.map(m=>val(m).a),backgroundColor:p.a,borderRadius:6,maxBarThickness:44},
+   {label:b.name,data:mem.map(m=>val(m).b),backgroundColor:p.b,borderRadius:6,maxBarThickness:44}]},options:baseOpts(p,true)}));
+  mem.forEach(m=>used.add(m));
+ }
+ // Weight breakdown: engine, drivetrain, body, suspension, with total
+ const WB=[['Engine','Engine · Weight'],['Drivetrain','Drivetrain · Weight'],['Body','Body · Weight'],['Suspension','Suspension · Weight']];
+ if(hasAny(WB.map(x=>x[1]))){
+  const mem=WB.filter(x=>sel.includes(x[1]));
+  const da=mem.map(x=>val(x[1]).a),db=mem.map(x=>val(x[1]).b);
+  const cv=card(box,'Weight breakdown · kg',false);
+  charts.push(new Chart(cv,{type:'bar',data:{labels:[...mem.map(x=>x[0]),'Total'],datasets:[
+   {label:a.name,data:[...da,numSum(da)],backgroundColor:p.a,borderRadius:6,maxBarThickness:36},
+   {label:b.name,data:[...db,numSum(db)],backgroundColor:p.b,borderRadius:6,maxBarThickness:36}]},options:{...baseOpts(p,true),scales:{y:{beginAtZero:true}}}}));
+  mem.forEach(x=>used.add(x[1]));
+ }
+ // Wheel setup: one front chart and one rear chart
+ const WHL=[['Width'],['Profile'],['Rim diameter'],['Wheel offset']];
+ ['F','R'].forEach(side=>{
+  const mem=WHL.map(([n])=>'Wheels · '+n+' '+side);
+  if(!hasAny(mem))return;
+  const cv=card(box,`Wheel setup · ${side==='F'?'front':'rear'}`,false);
+  charts.push(new Chart(cv,{type:'bar',data:{labels:WHL.map(x=>x[0]),datasets:[
+   {label:a.name,data:mem.map(m=>val(m).a),backgroundColor:p.a,borderRadius:6,maxBarThickness:36},
+   {label:b.name,data:mem.map(m=>val(m).b),backgroundColor:p.b,borderRadius:6,maxBarThickness:36}]},options:baseOpts(p,true)}));
+  mem.forEach(m=>used.add(m));
+ });
  // Front / rear pairs: grouped bars
  const bases=new Set(sel.filter(l=>!used.has(l)&&(l.endsWith(' F')||l.endsWith(' R'))).map(l=>l.slice(0,-2)));
  bases.forEach(base=>{
