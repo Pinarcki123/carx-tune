@@ -149,6 +149,11 @@ textarea{width:100%;min-height:90px;font:12px ui-monospace,monospace}
 #toast button{pointer-events:auto}
 /* compare */
 .tabbar:empty{display:none!important}
+.wdcar{display:flex;justify-content:center;margin:0 0 12px}
+.wdcar svg{width:200px;height:auto}
+.wdpair{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center}
+.wdpair svg{width:100%;max-width:190px;height:auto;margin:0 auto;display:block}
+.wdpair small{display:block;margin-bottom:4px}
 .gicon{width:44px;min-width:44px;height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;border-color:transparent;color:var(--acc)}
 .gicon svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tile.recent{aspect-ratio:auto;min-height:0;padding:12px 14px;justify-content:center;gap:4px}
@@ -305,7 +310,8 @@ function fld(f,d){
  else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
  else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}" style="width:100%;text-align:left">`;
  else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));cls=' gearrow';c=n?`<div class=gears>${Array.from({length:n},(_,i)=>`<div class=gc><small>Gear ${i+1}</small>${numIn('g'+(i+1),d['g'+(i+1)])}</div>`).join('')}</div>`:'<small>Set number of gears first</small>'}
- return`<div class="row${cls}"${ta}><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
+ const rowH=`<div class="row${cls}"${ta}><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
+ return f.k==='wd'?rowH+wdBox(d.wd):rowH;
 }
 function partRow(p,d){const f=partF(p);const v=d[f.k]||'N/A';
  return`<div class="row${tierCls(v)}"${tierAttr(v)}><label>${E(f.l)}</label><div class=in>${selIn(f.k,f.o,v)}</div></div>`}
@@ -659,6 +665,27 @@ function doDelete(){
  toast(`${items.length} tune${items.length>1?'s':''} deleted`,{a:'undo',l:'Undo'});
  renderList();
 }
+
+// Weight distribution car: front % on the front wheels, rear = 100 minus front
+function wdSvg(front,col){
+ const v=num(front)?clamp(front,0,100):null;
+ const f=v==null?'—':(+v.toFixed(1))+'%';
+ const r=v==null?'—':(+(100-v).toFixed(1))+'%';
+ const c=col||'var(--a)';
+ // Side view, facing right: front wheel on the right, rear wheel on the left
+ return `<svg viewBox="0 0 300 172" role="img" aria-label="Side view: front ${f}, rear ${r}">
+  <path d="M18 104 L18 88 Q18 78 32 76 L78 68 Q104 40 140 38 L204 38 Q234 40 252 66 L274 74 Q284 78 284 90 L284 104 Z" fill="${c}" fill-opacity=".18" stroke="${c}" stroke-opacity=".7" stroke-width="2"/>
+  <path d="M120 66 L146 66 L140 46 L124 46 Z" fill="${c}" fill-opacity=".35"/>
+  <path d="M190 66 L216 66 L226 47 L200 47 Z" fill="${c}" fill-opacity=".35"/>
+  <circle cx="80" cy="106" r="22" fill="var(--bg,#000)" stroke="${c}" stroke-width="4"/><circle cx="80" cy="106" r="7" fill="${c}"/>
+  <circle cx="232" cy="106" r="22" fill="var(--bg,#000)" stroke="${c}" stroke-width="4"/><circle cx="232" cy="106" r="7" fill="${c}"/>
+  <text x="80" y="146" text-anchor="middle" font-size="10" fill="var(--mu2)">REAR</text>
+  <text x="80" y="165" text-anchor="middle" font-size="18" font-weight="700" fill="var(--tx)">${r}</text>
+  <text x="232" y="146" text-anchor="middle" font-size="10" fill="var(--mu2)">FRONT</text>
+  <text x="232" y="165" text-anchor="middle" font-size="18" font-weight="700" fill="var(--tx)">${f}</text>
+ </svg>`;
+}
+function wdBox(front){return `<div class=wdcar id=wdprev>${wdSvg(front)}</div>`}
 function drawStats(box,a,b,p){
  if(!box)return;
  const ax=t=>[radarScore('wt',t.d.wt),radarScore('hp',t.d.hp),radarScore('top',topKmh(t.d)),radarScore('acc',t.d.acc),radarScore('gs',t.d.gs)];
@@ -799,6 +826,15 @@ function drawCompare(){
    options:baseOpts(p,true)}));
   used.add(base+' F');used.add(base+' R');
  });
+
+ // Weight distribution: both cars side by side
+ const WD='Body · Weight distribution';
+ if(sel.includes(WD)){
+  const r=byLabel.get(WD);
+  const d=document.createElement('div');d.className='cc glass';
+  d.innerHTML=`<h4>Weight distribution · front / rear</h4><div class=wdpair><div><small>${E(a.name)}</small>${wdSvg(r.a,p.a)}</div><div><small>${E(b.name)}</small>${wdSvg(r.b,p.b)}</div></div>`;
+  box.append(d);used.add(WD);
+ }
  // Everything else: bar, Tune A vs Tune B
  sel.filter(l=>!used.has(l)).forEach(l=>{
   const r=byLabel.get(l);
@@ -838,7 +874,7 @@ document.addEventListener('input',e=>{
   if(el.dataset.r==='name'){const h=$('ttl');if(h)h.textContent=el.value||'Tune'}
   return}
  if(el.dataset.txt){snapshot(cur);cur.d[el.dataset.k]=el.value;cur.up=Date.now();save();return}
- if(el.dataset.k){snapshot(cur);setv(el);const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur)}
+ if(el.dataset.k){snapshot(cur);setv(el);const b=$('sumbox');if(b)b.outerHTML=summaryHtml(cur);if(el.dataset.k==='wd'){const w=$('wdprev');if(w)w.innerHTML=wdSvg(cur.d.wd)}}
 });
 document.addEventListener('change',e=>{
  const el=e.target;
