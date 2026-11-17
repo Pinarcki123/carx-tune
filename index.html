@@ -15,7 +15,7 @@
  --tx:#051F20;--mu:#235047;--mu2:rgba(35,80,71,.72);
  --glass:rgba(255,255,255,.38);--glassHi:rgba(255,255,255,.7);--glassBd:rgba(255,255,255,.62);
  --field:rgba(255,255,255,.5);
- --acc:#235047;--accTx:#DBF0DD;--a:#235047;--b:#89B399;
+ --acc:#235047;--accTx:#DBF0DD;--a:#235047;--b:#B7833A;
  --shadow:0 1px 1px rgba(5,31,32,.06),0 10px 30px rgba(5,31,32,.10);
  --r:22px;color-scheme:light}
 [data-theme=dark]{
@@ -23,7 +23,7 @@
  --tx:#DBF0DD;--mu:#B6D8C8;--mu2:rgba(182,216,200,.7);
  --glass:rgba(35,80,71,.30);--glassHi:rgba(182,216,200,.14);--glassBd:rgba(182,216,200,.20);
  --field:rgba(5,31,32,.45);
- --acc:#89B399;--accTx:#051F20;--a:#B6D8C8;--b:#89B399;
+ --acc:#89B399;--accTx:#051F20;--a:#DBF0DD;--b:#D9A86C;
  --shadow:0 1px 1px rgba(0,0,0,.25),0 12px 34px rgba(0,0,0,.35);
  color-scheme:dark}
 *{box-sizing:border-box}
@@ -76,15 +76,17 @@ button.ghost:hover{background:transparent;opacity:.8}
 .active{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
 .chips.wrapx{flex-wrap:wrap;overflow:visible}
+.ico{width:46px;min-width:46px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.ico svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .chip{flex:0 0 auto;min-height:32px;padding:4px 12px;border-radius:999px;font-size:14px;background:var(--field)}
 .chip.on{background:var(--acc);color:var(--accTx);border-color:transparent}
 h3{margin:16px 0 8px;font-size:12px;color:var(--mu2);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
 .hrow{display:flex;gap:10px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}.hrow::-webkit-scrollbar{display:none}
-.hrow .tile{flex:0 0 150px}
-.grid{display:grid;grid-template-columns:1fr;gap:12px}
-@media(min-width:700px){.grid{grid-template-columns:1fr 1fr}}
-@media(min-width:1000px){.grid{grid-template-columns:1fr 1fr 1fr}}
-.tile{padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.hrow .tile{flex:0 0 140px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1000px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile{padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;cursor:pointer;aspect-ratio:1/1;overflow:hidden;min-width:0;transition:transform .2s,box-shadow .2s}
 .tile:hover{transform:translateY(-2px)}
 .tile:active{transform:scale(.98)}
 .tile .top{display:flex;justify-content:space-between;align-items:center}
@@ -190,6 +192,8 @@ const ICONS={
  susp:'<svg viewBox="0 0 24 24"><path d="M12 2.5v3"/><path d="M8 5.5h8l-8 3h8l-8 3h8l-8 3h8l-8 3h8"/><path d="M12 19.5v2"/></svg>',
  whl:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v6.5M12 14.5V21M3 12h6.5M14.5 12H21"/></svg>'
 };
+const ICO_IMPORT='<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg>';
+const ICO_BACKUP='<svg viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 10a4 4 0 0 1 .5 8H7z"/><path d="M12 17v-6M9.5 13.5L12 11l2.5 2.5"/></svg>';
 const SEC_TABS={stats:'Stats',eng:'Engine',drive:'Drive',body:'Body',susp:'Susp',whl:'Wheels'};
 
 // ================= FIELDS =================
@@ -319,7 +323,7 @@ function flat(t){
   if(f.t==='n')m.set(L,{u:f.u||'',v:t.d[f.k]});
   else if(f.t==='fr'){m.set(L+' F',{u:f.u||'',v:t.d[f.k+'F']});m.set(L+' R',{u:f.u||'',v:t.d[f.k+'R']})}
   else if(f.t==='s'&&f.k==='dr')m.set(s.t+' · Drive',{u:'',v:t.d.dr,text:true});
-  else if(f.t==='g')for(let i=1;i<=10;i++)if(num(t.d['g'+i]))m.set('Gear '+i,{u:'ratio',v:t.d['g'+i]});
+  else if(f.t==='g'){const n=Math.min(10,t.d.ng|0);const arr=[];for(let i=1;i<=n;i++)arr.push(num(t.d['g'+i])?t.d['g'+i]:null);if(arr.some(x=>x!=null))m.set(s.t+' · Gear ratios',{u:'ratio',v:arr,multi:true})}
  }));
  const pw=pwOf(t.d);if(pw!=null)m.set('Overview · Power-to-weight',{u:'hp/t',v:pw});
  return m;
@@ -328,14 +332,14 @@ function compareRows(a,b){
  const fa=flat(a),fb=flat(b),keys=new Set([...fa.keys(),...fb.keys()]),rows=[];
  keys.forEach(k=>{const x=fa.get(k),y=fb.get(k);
   const isText=(x&&x.text)||(y&&y.text);
-  const pick=z=>!z?null:(z.text?(z.v||null):(num(z.v)?z.v:null));
+  const pick=z=>!z?null:(z.multi?(z.v||null):z.text?(z.v||null):(num(z.v)?z.v:null));
   const va=pick(x),vb=pick(y);
   if(va==null&&vb==null)return;
-  rows.push({label:k,unit:(x||y).u||'value',a:va,b:vb,text:!!isText})});
+  rows.push({label:k,unit:(x||y).u||'value',a:va,b:vb,text:!!isText,multi:!!((x&&x.multi)||(y&&y.multi))})});
  return rows;
 }
 const CMP_GROUPS=['Engine','Drivetrain','Body','Suspension','Wheels','Overview'];
-function groupOf(label){if(label.startsWith('Gear '))return 'Drivetrain';if(label.startsWith('Overview'))return 'Overview';return label.split(' · ')[0]}
+function groupOf(label){if(label.startsWith('Overview'))return 'Overview';return label.split(' · ')[0]}
 const groupKey=g=>g==='Car overall stats'?'Stats':g;
 function metricName(label){return label.split(' · ').pop()}
 
@@ -423,7 +427,7 @@ function renderList(){
   <div class=sumline>${E(sum)}</div>
   ${act.length?`<div class=active>${act.map(g=>`<button class="chip on" data-a=unfilter data-g=${g}>${E(filt[g])} ×</button>`).join('')}<button class=chip data-a=resetfilt>Clear all</button></div>`:''}
   ${recent.length&&!q&&!act.length?`<h3>Recent</h3><div class=hrow>${recent.map(tileHtml).join('')}</div>`:''}
-  <div class=acts><button class=p data-a=new>New tune</button><button data-a=import>Import</button><button data-a=backup>Backup all</button><button data-a=compare>Compare</button></div>
+  <div class=acts><button class=p data-a=new>New tune</button><button data-a=compare>Compare</button><button class=ico data-a=import aria-label="Import tune" title="Import">${ICO_IMPORT}</button><button class=ico data-a=backup aria-label="Back up all tunes" title="Back up all">${ICO_BACKUP}</button></div>
   <div id=lst class=grid style="margin-top:4px">${list.length?list.map(tileHtml).join(''):`<p class=mu style="grid-column:1/-1">${all.length?'No tunes match these filters.':'No tunes yet. Tap "New tune" to start your first setup.'}</p>`}</div>
  </div>`;
  window.onscroll=()=>{const t=$('ttl');if(view!=='list'||!t)return;t.classList.toggle('show',scrollY>70)};
@@ -537,7 +541,7 @@ function drawStats(box,a,b,p){
  const cv=card(box,'Car overall stats · radar (fixed scale)',true);
  charts.push(new Chart(cv,{type:'radar',data:{labels:['Weight (light = high)','Power','Top speed','Acceleration (lower time = high)'],datasets:[
   {label:a.name,data:va.map(v=>v==null?null:Math.round(v)),borderColor:p.a,backgroundColor:p.a+'33',pointBackgroundColor:p.a,spanGaps:true},
-  {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,backgroundColor:p.b+'33',pointBackgroundColor:p.b,spanGaps:true}]},
+  {label:b.name,data:vb.map(v=>v==null?null:Math.round(v)),borderColor:p.b,borderDash:[6,4],backgroundColor:p.b+'26',pointBackgroundColor:p.b,spanGaps:true}]},
   options:{...baseOpts(p,true),scales:{r:{beginAtZero:true,max:100,ticks:{display:false,stepSize:25},grid:{color:p.bd},angleLines:{color:p.bd},pointLabels:{color:p.tx}}}}}));
  const rowsDef=[['Weight','wt','kg',true],['Power','hp','hp',false],['Top speed','top','km/h',false],['Acceleration','acc','',true]];
  const cell=(t,key)=>{const v=key==='top'?topKmh(t.d):t.d[key];return num(v)?v:null};
@@ -580,17 +584,18 @@ function drawCompare(){
    options:baseOpts(p,true)}));
   torq.forEach(l=>used.add(l));
  }
- // Gear ratios: line across gears
- const gears=sel.filter(l=>/^Gear \d+$/.test(l));
- if(gears.length){
-  const idx=gears.map(l=>+l.split(' ')[1]).sort((x,y)=>x-y);
-  const cv=card(box,'Gear ratios · line per tune',true);
-  const pick=t=>idx.map(i=>{const r=byLabel.get('Gear '+i);return r?(t==='a'?r.a:r.b):null});
-  charts.push(new Chart(cv,{type:'line',data:{labels:idx.map(i=>'G'+i),datasets:[
-   {label:a.name,data:pick('a'),borderColor:p.a,backgroundColor:p.a,tension:0,spanGaps:true,pointRadius:5},
-   {label:b.name,data:pick('b'),borderColor:p.b,backgroundColor:p.b,tension:0,spanGaps:true,pointRadius:5}]},
+ // Gear ratios: ONE graph, all gears, Tune B overlaid on Tune A
+ const gr=byLabel.get('Drivetrain · Gear ratios');
+ if(sel.includes('Drivetrain · Gear ratios')&&gr){
+  const n=Math.max((gr.a||[]).length,(gr.b||[]).length);
+  const cv=card(box,'Gear ratios · all gears, overlaid',true);
+  const labs=Array.from({length:n},(_,i)=>'G'+(i+1));
+  const pad=arr=>Array.from({length:n},(_,i)=>arr&&num(arr[i])?arr[i]:null);
+  charts.push(new Chart(cv,{type:'line',data:{labels:labs,datasets:[
+   {label:a.name,data:pad(gr.a),borderColor:p.a,backgroundColor:p.a,tension:0,spanGaps:true,pointRadius:5},
+   {label:b.name,data:pad(gr.b),borderColor:p.b,borderDash:[6,4],backgroundColor:p.b,tension:0,spanGaps:true,pointRadius:5}]},
    options:baseOpts(p,true)}));
-  gears.forEach(l=>used.add(l));
+  used.add('Drivetrain · Gear ratios');
  }
  // Front / rear pairs: grouped bars
  const bases=new Set(sel.filter(l=>!used.has(l)&&(l.endsWith(' F')||l.endsWith(' R'))).map(l=>l.slice(0,-2)));
