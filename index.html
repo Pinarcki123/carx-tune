@@ -174,6 +174,20 @@ table.cmp td.best{color:var(--acc);font-weight:700}
 .tick{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid var(--mu2);background:transparent}
 .tick.on{background:var(--acc);border-color:var(--acc);box-shadow:inset 0 0 0 4px var(--glass)}
 button.danger{color:#ff6b6b}
+.row.gearrow{flex-direction:column;align-items:stretch}
+.row.gearrow label{flex:none}
+.row.gearrow .in{flex:none;width:100%;justify-content:stretch}
+.gears{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+@media(min-width:700px){.gears{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.gc{display:flex;flex-direction:column;gap:4px;min-width:0}
+.gc small{font-size:11px;color:var(--mu2)}
+.gc input{width:100%;min-width:0;text-align:center}
+.ck{min-height:42px;padding:4px 2px;font-size:15px;gap:12px;border-top:.5px solid var(--glassBd)}
+.ck input{width:22px;height:22px;flex:0 0 22px}
+.ck small{font-size:11px;color:var(--mu2);margin-left:4px}
+.cklist{display:grid;grid-template-columns:1fr 1fr;column-gap:14px}
+.cklist .ck:nth-child(-n+2){border-top:0}
+@media(min-width:900px){.cklist{grid-template-columns:1fr 1fr 1fr}.cklist .ck:nth-child(-n+3){border-top:0}}
 </style></head><body>
 <div id="app"></div><div id="toast"></div>
 <nav class="tabbar glass" id="tabs"></nav>
@@ -277,7 +291,7 @@ function fld(f,d){
  else if(f.t==='s'){c=selIn(f.k,f.o,d[f.k])+u;if(f.o===T){cls=tierCls(d[f.k]);ta=tierAttr(d[f.k])}}
  else if(f.t==='sfr')c=`<span>F</span>${selIn(f.k+'F',f.o,d[f.k+'F'])}<span>R</span>${selIn(f.k+'R',f.o,d[f.k+'R'])}`;
  else if(f.t==='x')c=`<input type=text data-k="${f.k}" data-txt=1 maxlength=60 value="${E(d[f.k]||'')}" style="width:100%;text-align:left">`;
- else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));c=n?Array.from({length:n},(_,i)=>`<span>${i+1}</span>${numIn('g'+(i+1),d['g'+(i+1)])}`).join(''):'<small>Set number of gears first</small>'}
+ else if(f.t==='g'){const n=Math.min(10,Math.max(0,d.ng|0));cls=' gearrow';c=n?`<div class=gears>${Array.from({length:n},(_,i)=>`<div class=gc><small>Gear ${i+1}</small>${numIn('g'+(i+1),d['g'+(i+1)])}</div>`).join('')}</div>`:'<small>Set number of gears first</small>'}
  return`<div class="row${cls}"${ta}><label>${E(f.l)}</label><div class=in>${c}</div></div>`;
 }
 function partRow(p,d){const f=partF(p);const v=d[f.k]||'N/A';
@@ -351,6 +365,19 @@ const CMP_GROUPS=['Engine','Drivetrain','Body','Suspension','Wheels','Overview']
 function groupOf(label){if(label.startsWith('Overview'))return 'Overview';return label.split(' · ')[0]}
 const groupKey=g=>g==='Car overall stats'?'Stats':g;
 function metricName(label){return label.split(' · ').pop()}
+// Front and rear pairs become one tick that selects both sides
+function pickItems(rows){
+ const labels=new Set(rows.map(r=>r.label)),out=[],done=new Set();
+ rows.forEach(r=>{
+  if(done.has(r.label))return;
+  if(r.label.endsWith(' F')&&labels.has(r.label.slice(0,-2)+' R')){
+   const base=r.label.slice(0,-2),R=base+' R';done.add(r.label);done.add(R);
+   out.push({name:metricName(base),members:[r.label,R]});return}
+  if(r.label.endsWith(' R')&&labels.has(r.label.slice(0,-2)+' F'))return;
+  done.add(r.label);out.push({name:metricName(r.label),members:[r.label]});
+ });
+ return out;
+}
 
 // ================= STATE =================
 const $=id=>document.getElementById(id),app=$('app'),tabs=$('tabs');
@@ -496,7 +523,7 @@ function renderEdit(){
    <div class=acts><button data-a=share data-id=${cur.id}>Share</button><button data-a=history>History (${(cur.hist||[]).length})</button></div>
   </div>`;
  SEC.forEach(s=>{const b=filled(s,cur.d);
-  h+=`<details data-s=${s.id} id=sec-${s.id}${activeSec===s.id?' open':''}><summary>${s.t}<span class=cnt>${b.n}/${b.t}</span></summary><div class=sec>${s.f.map(f=>fld(f,cur.d)).join('')}${s.p?'<h4 class=ph>Parts</h4>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}</div></details>`;
+  h+=`<details data-s=${s.id} id=sec-${s.id}${activeSec===s.id?' open':''}><summary>${s.t}<span class=cnt>${b.n}/${b.t}</span></summary><div class=sec>${s.p?'<h4 class=ph>Parts</h4>'+s.p.map(p=>partRow(p,cur.d)).join(''):''}${s.f.map(f=>fld(f,cur.d)).join('')}</div></details>`;
  });
  app.innerHTML=h+'</div>';
  tabs.innerHTML=tabsHtml();
@@ -528,7 +555,7 @@ function renderCmp(){
   const tabsBar=`<div class=ctabs>${CMP_GROUPS.map(g=>{const n=rows.filter(r=>groupOf(r.label)===g).length;if(!n)return'';return `<button class="${cmpTab===g?'on':''}" data-a=ctab data-g="${E(g)}">${g}<b>${count(g)||''}</b></button>`}).join('')}</div>`;
   const items=rows.filter(r=>groupOf(r.label)===cmpTab);
   body=picker+`<div class=cg id=statsbox></div><div class=card style="padding:6px 16px">${tabsBar}<div class=acts style="margin:4px 0 2px"><button data-a=cselall>Select all</button><button data-a=cselnone>Clear all</button></div>`+
-   items.map(r=>`<label class=ck><input type=checkbox data-cm="${E(r.label)}"${cmpPending.has(r.label)?' checked':''}><span>${E(metricName(r.label))}</span></label>`).join('')+
+   `<div class=cklist>`+pickItems(items).map(it=>{const on=it.members.every(m=>cmpPending.has(m));return `<label class=ck><input type=checkbox data-cm="${E(it.members.join('|'))}"${on?' checked':''}><span>${E(it.name)}${it.members.length>1?' <small>F+R</small>':''}</span></label>`}).join('')+'</div>'+
    `</div>`;
   body+=`<div class=applybar><div class=info id=applyinfo><b>${cmpPending.size}</b> selected</div><button data-a=clearsel>Clear</button><button class=p data-a=apply ${cmpPending.size?'':'disabled'}>Apply</button></div>`;
  } else {
@@ -721,7 +748,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
  const el=e.target;
- if(el.dataset.cm){const l=el.dataset.cm;if(el.checked)cmpPending.add(l);else cmpPending.delete(l);applyInfoUpdate();return}
+ if(el.dataset.cm){const ms=el.dataset.cm.split('|');ms.forEach(l=>{if(el.checked)cmpPending.add(l);else cmpPending.delete(l)});applyInfoUpdate();return}
  if(el.dataset.c){if(el.dataset.c==='a')cA=el.value;else cB=el.value;renderCmp();return}
  if(el.id==='fi'){el.files[0]&&el.files[0].text().then(t=>addTunes(parse(t)));return}
  if(!cur)return;
